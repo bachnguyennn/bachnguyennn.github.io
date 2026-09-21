@@ -61,7 +61,7 @@ Projecting the learned vectors with t-SNE shows real lexical structure emerging 
 
 ![t-SNE projection of the from-scratch Skip-Gram embeddings](../../assets/projects/fasttext-embeddings/tsne-skipgram.png)
 
-## The honest verdict
+## Takeaways
 
 Subwords didn't beat Skip-Gram on every scalar — they paid off specifically in **coverage and morphology**, exactly where the theory says they should. The portfolio claim here isn't a leaderboard number; it's that I can implement the paper correctly, design a controlled experiment, and interpret the result — including being clear that the gap to pretrained models is a data-budget story, not an implementation one.
 

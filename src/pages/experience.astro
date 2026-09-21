@@ -1,95 +1,39 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { experience } from '../data/experience';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const href = (p: string) => `${basePath}${p}` || '/';
 const asset = (p: string) => `${basePath}/${p}`;
-
-const commits = [
-  {
-    hash: 'a1f2c3d', head: '(HEAD → main,', ref: 'role/it-intern)',
-    where: 'Date: May 2025 – Aug 2025 · Oshawa, ON',
-    role: 'IT Intern — Canadian Mental Health Association',
-    bullets: [
-      'Built automated booking + workflow systems with Power Apps & Power Automate.',
-      'Ran IT support and server maintenance for internal + clinical software.',
-      'Modernised legacy tools for 100+ employees, improving data accessibility.',
-    ],
-  },
-  {
-    hash: '7b9e04a', head: '', ref: '(role/data-engineer)',
-    where: 'Date: Feb 2025 · Remote (volunteer)',
-    role: 'Data Engineer — Statistics Without Borders',
-    bullets: [
-      'Architected Azure cloud pipelines for large-scale biodiversity datasets.',
-      'Reorganised cloud storage to cut query latency and storage cost.',
-      'Aligned technical work with research standards alongside statisticians.',
-    ],
-  },
-  {
-    hash: '3c5d8f1', head: '', ref: '(role/community)',
-    where: 'Date: 2023 – present · Ontario Tech',
-    role: 'Events Coordinator & Peer Mentor — CS Club',
-    bullets: [
-      'Co-organised hackathons with 250+ participants as Events Coordinator.',
-      'Ran technical workshops + networking for 30+ students.',
-      'Mentored 20 first-year students as Peer Mentor & Orientation Leader.',
-    ],
-  },
-  {
-    hash: '0a00000', head: '', ref: '(tag: enrolled)',
-    where: 'Date: Sep 2023 – Apr 2027 · Oshawa, ON',
-    role: 'BSc Integrated Mathematics & Computer Science — Ontario Tech',
-    bullets: ['Cumulative GPA 3.77 / 4.3.'],
-  },
-];
 ---
 
 <BaseLayout
   title="Experience — Bach Nguyen"
-  description="Work experience as a commit history — IT, data engineering, and community leadership."
-  footMeta="experience.ipynb · 3 cells · kernel: python 3"
+  description="Research, teaching, IT, and data engineering experience."
 >
-  <!-- intro -->
-  <section class="cell">
-    <div class="gutter">In [1]:</div>
-    <div class="body-cell md">
-      <p class="eyebrow">/experience</p>
-      <h1>Experience</h1>
-      <p class="lead">Where I've worked, replayed as a commit history — newest first. IT, data engineering, and a fair bit of community building.</p>
-    </div>
+  <h1 class="page-title">Experience</h1>
+  <p class="muted">The same information as my <a href={asset('Resume.pdf')} target="_blank" rel="noopener">resume</a>, newest first.</p>
+
+  <section>
+    <ul class="entries">
+      {experience.map((e) => (
+        <li class="entry">
+          <div class="top"><h3>{e.role}</h3><span class="date">{e.date}</span></div>
+          <p class="sub">{e.org}</p>
+          <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>
+        </li>
+      ))}
+    </ul>
   </section>
 
-  <!-- git log -->
-  <section class="cell">
-    <div class="gutter">In [2]:</div>
-    <div class="body-cell code"><span class="cmt">$</span> git log --oneline --author=<span class="str">"Bach"</span> career/</div>
-  </section>
-  <section class="cell">
-    <div class="gutter out">Out[2]:</div>
-    <div class="body-cell output">
-      <div class="gitlog">
-        {commits.map((c) => (
-          <div class="commit">
-            <div>
-              <span class="hash">{c.hash}</span>{' '}
-              {c.head && <span class="head">{c.head}</span>}{c.head ? ' ' : ''}
-              <span class="ref">{c.ref}</span>
-            </div>
-            <div class="where">{c.where}</div>
-            <div class="role">{c.role}</div>
-            <ul>{c.bullets.map((b) => <li>{b}</li>)}</ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- closing -->
-  <section class="cell">
-    <div class="gutter blank">In [ ]:</div>
-    <div class="body-cell md">
-      <p class="muted">The full version (with dates and references) lives on my <a href={asset('Resume.pdf')} target="_blank" rel="noopener">résumé</a>. Curious about any of it? <a href={href('/#contact')}>Say hi</a> — I'm happy to talk through what I actually did.</p>
+  <section>
+    <h2 class="section-title">Education</h2>
+    <div class="entry">
+      <div class="top"><h3>Ontario Tech University</h3><span class="date">Sep 2023 – Apr 2027</span></div>
+      <p class="sub">BSc (Hons), Integrated Mathematics &amp; Computer Science (Co-op)</p>
+      <ul>
+        <li>GPA 3.77 / 4.3 · President's List (3×), Dean's List</li>
+        <li>Relevant coursework: Data Mining, Database Systems, Scientific Data Analysis, Data Structures, Statistics &amp; Probability</li>
+      </ul>
     </div>
   </section>
 </BaseLayout>

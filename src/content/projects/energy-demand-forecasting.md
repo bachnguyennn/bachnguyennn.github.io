@@ -64,7 +64,7 @@ A SHAP check confirmed the story: the short-term lag features dominate the model
 
 ![SHAP feature importance for the XGBoost forecaster](../../assets/projects/energy-demand-forecasting/shap.png)
 
-## The honest verdict
+## Takeaways
 
 For this problem, **boosted trees on well-engineered lag features beat the fancier deep models** — and the EDA told me why before I trained anything. The biggest lever wasn't model choice, it was honest validation and features that respect the data's structure. Next step would be folding in **weather data**, which is the obvious missing driver of demand.
 

@@ -1,5 +1,5 @@
 ---
-title: "Hospital Readmission Prediction"
+title: "Hospital Readmission Risk Model"
 summary: "30-day readmission prediction where the methodology is the point: leakage-free validation over a flattering number."
 role: "Builder"
 period: "2025"
@@ -56,7 +56,7 @@ A SHAP analysis made the model interpretable for a clinical audience — the str
 
 ![SHAP beeswarm for the LightGBM model](../../assets/projects/hospital-readmission/shap-beeswarm.png)
 
-## The honest verdict
+## Takeaways
 
 The methodology *is* the project: temporal splits, deduplication, and AUPRC-first evaluation are what make the result trustworthy. I'd rather report a real 0.128 than a leaky 0.4. Next steps would be survival analysis (time-to-readmission instead of a binary flag) and a fairness audit across demographic groups before anything like this went near a real workflow.
 

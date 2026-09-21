@@ -1,25 +1,19 @@
 ---
-interface Props {
-  meta?: string;
-}
-const { meta = 'bach-nguyen.ipynb · kernel: python 3' } = Astro.props;
-
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
 ---
 
-<footer class="foot">
-  <a class="foot-brand" href={href('/')} aria-label="Bach Nguyen — home">
-    <svg class="brand-lockup" viewBox="0 0 280 64" role="img" aria-label="Bach Nguyen — student data scientist">
-      <rect x="2" y="2" width="60" height="60" rx="16" fill="#19202e"></rect>
-      <text x="27" y="46" font-family="Newsreader, Georgia, serif" font-size="44" font-weight="600" fill="#ffffff" text-anchor="middle">B</text>
-      <text x="45" y="52" font-family="Newsreader, Georgia, serif" font-size="22" font-weight="600" fill="#7aa0ff" text-anchor="middle">n</text>
-      <text x="78" y="34" class="logo-ink" font-family="Newsreader, Georgia, serif" font-size="26" font-weight="600">Bach Nguyen</text>
-      <text x="79" y="50" class="logo-muted" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11" letter-spacing="0.5">student data scientist</text>
-    </svg>
-  </a>
-  <div class="foot-lines">
-    <span>{meta}</span>
-    <span>built with too much coffee in Oshawa / Toronto</span>
+<footer class="site-footer">
+  <div class="wrap">
+    <a href={href('/')} aria-label="Bach Nguyen — home">
+      <svg class="brand-lockup" viewBox="0 0 280 64" role="img" aria-label="Bach Nguyen">
+        <rect x="2" y="2" width="60" height="60" rx="16" fill="#19202e"></rect>
+        <text x="27" y="46" font-family="Newsreader, Georgia, serif" font-size="44" font-weight="600" fill="#ffffff" text-anchor="middle">B</text>
+        <text x="45" y="52" font-family="Newsreader, Georgia, serif" font-size="22" font-weight="600" fill="#7aa0ff" text-anchor="middle">n</text>
+        <text x="78" y="34" class="logo-ink" font-family="Newsreader, Georgia, serif" font-size="26" font-weight="600">Bach Nguyen</text>
+        <text x="79" y="51" class="logo-muted" font-family="system-ui, sans-serif" font-size="11">Math &amp; Computer Science</text>
+      </svg>
+    </a>
+    <span>Oshawa / Toronto, ON</span>
   </div>
 </footer>

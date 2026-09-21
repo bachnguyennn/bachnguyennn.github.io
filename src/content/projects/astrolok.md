@@ -60,7 +60,7 @@ A random guess on a sphere averages ~90°. My model got to ~65–77°: **barely 
 
 ![Predicted field overlaid on the actual stars — they don't match](../../assets/projects/astrolok/demo-overlay.png)
 
-## Why it failed — and the verdict
+## Why it didn't work
 
 Digging into *why* was the real payoff. Three causes converged: (1) ImageNet features don't transfer to star fields — dots on black are wildly out-of-distribution; (2) 20k synthetic samples isn't nearly enough for a 5M-parameter model; and most fundamentally, (3) **plate solving is a geometric-matching problem, not a feature-learning one.** Recognising "that's Orion's belt" and triangulating from it is exactly what classical asterism matching does well and what a generic CNN does poorly.
 

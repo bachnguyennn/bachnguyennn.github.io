@@ -66,7 +66,7 @@ That +5.7% yield *looks* like a win — and here's the discipline that matters: 
 
 ![Quarter-Kelly bankroll vs the closing line — note the swings](../../assets/projects/expected-goals/backtest-equity.png)
 
-## The honest verdict
+## Takeaways
 
 **No demonstrable edge against the close — and that's the correct answer.** An efficient market *should* be hard to beat, and proving that rigorously (closing-line benchmark, walk-forward validation, bootstrap significance) is a far more valuable demonstration than a cherry-picked profit curve. What I learned: in any predictive-finance problem, the headline isn't the point estimate — it's whether you can tell signal from variance. The tools that do that (calibration, significance testing, benchmarking against the market) are the whole job.
 

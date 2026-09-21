@@ -1,181 +1,122 @@
 ---
-import { getEntry } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { experience } from '../data/experience';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
 const asset = (p: string) => `${basePath}/${p}`;
 
-const xg = await getEntry('projects', 'expected-goals');
-const nested = await getEntry('projects', 'nested-learning');
-
-const into = [
-  { em: '📖', k: 'reading', v: 'Gorky' },
-  { em: '🎧', k: 'on repeat', v: 'The Smiths' },
-  { em: '⚽', k: 'forever', v: 'Barça · Arsenal' },
-  { em: '🎬', k: 'comfort', v: 'Good Will Hunting' },
-  { em: '🎮', k: 'unwinding', v: 'FC · League' },
+const work = [
+  {
+    title: 'Continual Learning Research',
+    sub: 'Ontario Tech Visual Computing Lab',
+    body: 'Implemented a 10M-parameter CascadedViT variant under CPG (Compacting, Picking, and Growing). Currently working on the expert-routing mechanism in SEMA with a CascadedViT co-author.',
+    tags: 'Python · PyTorch · Vision Transformers',
+  },
+  {
+    title: 'Booking Automation',
+    sub: 'Canadian Mental Health Association',
+    body: 'Built booking workflows in Power Apps and Power Automate that eliminated recurring double-booking errors and saved staff an estimated 5+ hours of manual scheduling per week.',
+    tags: 'Power Apps · Power Automate · SharePoint',
+  },
+  {
+    title: 'Hospital Readmission Risk Model',
+    sub: 'Personal project',
+    body: 'Modelled 30-day readmission risk on ~100K patient encounters with chronological splits, patient deduplication, and AUPRC-first evaluation, then used SHAP to find the main risk drivers.',
+    tags: 'Python · XGBoost · LightGBM · SHAP',
+    links: [
+      { label: 'Write-up →', url: href('/projects/hospital-readmission') },
+      { label: 'GitHub →', url: 'https://github.com/bachnguyennn/Hospital_Readmission_prediction' },
+    ],
+  },
 ];
 
-const toolkit = [
-  { label: 'machine learning & research', accent: true, items: ['PyTorch', 'Continual Learning', 'State-Space Models', 'Transfer Learning', 'SHAP', 'Optuna', 'Grad-CAM'] },
-  { label: 'languages', accent: false, items: ['Python', 'Java', 'C++', 'SQL', 'Bash', 'R'] },
-  { label: 'data engineering & tooling', accent: false, items: ['pandas', 'NumPy', 'scikit-learn', 'ETL / Airflow', 'Azure', 'Docker', 'Git', 'MySQL'] },
+const tools = [
+  'Python', 'SQL', 'Java', 'C++', 'Bash', 'pandas', 'NumPy', 'scikit-learn', 'PyTorch',
+  'Azure', 'SharePoint', 'Power Apps', 'Power Automate', 'Excel / Power Query',
+  'MySQL', 'SQLite', 'Docker', 'Airflow', 'Git',
 ];
-
-const today = new Date().toISOString().slice(0, 10);
-const footMeta = `bach-nguyen.ipynb · last run ${today} · kernel: python 3`;
 ---
 
 <BaseLayout
   title="Bach Nguyen"
-  description="Student data scientist at Ontario Tech. A notebook of experiments in applied ML, quant, and computer vision — with honest verdicts."
-  footMeta={footMeta}
+  description="Integrated Mathematics & Computer Science student at Ontario Tech University. I build software, data systems, and machine learning projects."
 >
-  <!-- In [1]: hero -->
-  <section class="cell">
-    <div class="gutter">In [1]:</div>
-    <div class="body-cell">
-      <div class="hero">
-        <div class="name-row">
-          <div class="avatar avatar-sm"><img src={asset('profile.jpg')} alt="Bach Nguyen" width="72" height="72" /></div>
-          <div class="name-copy">
-            <p class="eyebrow">student data scientist · toronto</p>
-            <h1>Bach Nguyen</h1>
-          </div>
-        </div>
-        <p class="lead">I build end-to-end ML and I care most about the parts people skip: honest validation, calibration, and saying so when the model loses.</p>
-        <div class="handle">
-          <a href="https://github.com/bachnguyennn" target="_blank" rel="noopener">github/bachnguyennn</a>
-          <a href="https://www.linkedin.com/in/bach-nguyen-0a50b028a/" target="_blank" rel="noopener">linkedin</a>
-          <a href="https://kaggle.com/nguyenvubach" target="_blank" rel="noopener">kaggle</a>
-        </div>
-        <div class="btn-row">
-          <a class="btn primary" href={href('/projects')}>▶ run projects</a>
-          <a class="btn" href="#contact">say hi</a>
-        </div>
-      </div>
+  <div class="intro">
+    <div class="avatar"><img src={asset('profile.jpg')} alt="Bach Nguyen" width="72" height="72" /></div>
+    <div>
+      <h1>Bach Nguyen</h1>
+      <p class="role">Mathematics &amp; Computer Science student, Ontario Tech University</p>
     </div>
-  </section>
+  </div>
 
-  <!-- In [2]: README about -->
-  <div class="cell-label"># a short README, before the data</div>
-  <section class="cell">
-    <div class="gutter">In [2]:</div>
-    <div class="body-cell md">
-      <h2>About me</h2>
-      <p>I'm an Integrated Math &amp; Computer Science student at Ontario Tech, somewhere between a mathematician who likes proofs and an engineer who likes things that actually run.</p>
-      <p>Most of my work lives in this notebook: applied ML, a bit of quant, some computer vision. Off the clock I'm watching Barça or Arsenal, or losing to my friends in FC.</p>
-    </div>
-  </section>
+  <p class="lead">I build software, data systems, and machine learning projects. I'm finishing my BSc at Ontario Tech and doing undergraduate thesis research on continual learning in the Visual Computing Lab.</p>
 
-  <!-- In [3]: currently into -->
-  <section class="cell">
-    <div class="gutter">In [3]:</div>
-    <div class="body-cell code"><span class="cmt"># the non-technical context, for the humans reading this</span><br /><span class="fn">me</span>.currently()</div>
-  </section>
-  <section class="cell">
-    <div class="gutter out">Out[3]:</div>
-    <div class="body-cell output">
-      <div class="into-grid">
-        {into.map((i) => (
-          <div class="into"><div class="em">{i.em}</div><div class="k">{i.k}</div><div class="v">{i.v}</div></div>
-        ))}
-      </div>
-    </div>
-  </section>
+  <div class="links">
+    <a href="https://github.com/bachnguyennn" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/in/bach-nguyen-vu" target="_blank" rel="noopener">LinkedIn</a>
+    <a href={asset('Resume.pdf')} target="_blank" rel="noopener">Resume</a>
+    <a href="mailto:vubach.nguyen@ontariotechu.net">Email</a>
+  </div>
 
-  <!-- In [4]: featured xG -->
-  <div class="cell-label"># featured projects — full write-ups under /projects</div>
-  <section class="cell">
-    <div class="gutter">In [4]:</div>
-    <div class="body-cell">
-      <div class="exp">
-        <div>
-          <p class="meta-tag">exp_01 · quant / sports analytics · {xg.data.year}</p>
-          <h3>{xg.data.title}</h3>
-          <p class="muted">{xg.data.summary}</p>
-          <div class="chips">{xg.data.tags.slice(0, 4).map((t) => <span class="chip">{t}</span>)}</div>
-          <div class="verdict"><b>out[ ]:</b> the +5.7% "edge" was statistical noise (95% CI crosses zero). No demonstrable edge vs the close — <b>and that's the correct answer.</b></div>
-          <div class="btn-row"><a class="btn" href={href('/projects/expected-goals')}>read notebook →</a><a class="btn" href={xg.data.github} target="_blank" rel="noopener">github</a></div>
-        </div>
-        <div class="chart">
-          <div data-chart="equity"></div>
-          <div class="cap">fig 1 · quarter-Kelly bankroll vs the closing line</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- In [5]: featured Nested Learning -->
-  <section class="cell">
-    <div class="gutter">In [5]:</div>
-    <div class="body-cell">
-      <div class="exp rev">
-        <div class="chart">
-          <div data-chart="loss"></div>
-          <div class="cap">fig 2 · train / val loss on WikiText-103</div>
-        </div>
-        <div>
-          <p class="meta-tag">exp_02 · ml systems research · {nested.data.year}</p>
-          <h3>{nested.data.title}</h3>
-          <p class="muted">{nested.data.summary}</p>
-          <div class="chips">{nested.data.tags.slice(0, 4).map((t) => <span class="chip">{t}</span>)}</div>
-          <div class="verdict"><b>out[ ]:</b> the memory vault recovers <b>+2.1 ppl</b> over the fast-weight baseline on held-out continuation — ablations isolate where it helps.</div>
-          <div class="btn-row"><a class="btn" href={nested.data.github} target="_blank" rel="noopener">github →</a></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- In [6]: toolkit -->
-  <div class="cell-label"># the toolkit</div>
-  <section class="cell">
-    <div class="gutter">In [6]:</div>
-    <div class="body-cell code"><span class="kw">from</span> bach <span class="kw">import</span> toolkit<br />toolkit.<span class="fn">groups</span>()</div>
-  </section>
-  <section class="cell">
-    <div class="gutter out">Out[6]:</div>
-    <div class="body-cell output">
-      {toolkit.map((g, idx) => (
-        <>
-          <p class="eyebrow" style={`color:var(--out)${idx ? ';margin-top:1rem' : ''}`}>{g.label}</p>
-          <div class="chips">{g.items.map((t) => <span class={g.accent ? 'chip accent' : 'chip'}>{t}</span>)}</div>
-        </>
+  <section>
+    <h2 class="section-title">Selected work</h2>
+    <ul class="entries">
+      {work.map((w) => (
+        <li class="entry">
+          <h3>{w.title}</h3>
+          <p class="sub">{w.sub}</p>
+          <p>{w.body}</p>
+          <p class="tags">{w.tags}</p>
+          {w.links && (
+            <span class="more">
+              {w.links.map((l) => (
+                <a href={l.url} {...(l.url.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}>{l.label}</a>
+              ))}
+            </span>
+          )}
+        </li>
       ))}
+    </ul>
+    <p style="margin-top:1.75rem"><a href={href('/projects')}>All projects →</a></p>
+  </section>
+
+  <section>
+    <h2 class="section-title">Experience</h2>
+    <ul class="entries">
+      {experience.map((e) => (
+        <li class="entry">
+          <div class="top"><h3>{e.role}</h3><span class="date">{e.date}</span></div>
+          <p class="sub">{e.org}</p>
+        </li>
+      ))}
+    </ul>
+    <p style="margin-top:1.75rem"><a href={href('/experience')}>Details →</a></p>
+  </section>
+
+  <section>
+    <h2 class="section-title">Education</h2>
+    <div class="entry">
+      <div class="top"><h3>Ontario Tech University</h3><span class="date">2023 – 2027</span></div>
+      <p class="sub">BSc (Hons), Integrated Mathematics &amp; Computer Science (Co-op)</p>
+      <p class="muted">GPA 3.77 / 4.3 · President's List (3×), Dean's List</p>
     </div>
   </section>
 
-  <!-- In [7]: playful xG of my week -->
-  <div class="cell-label"># and because not everything needs to be serious</div>
-  <section class="cell">
-    <div class="gutter">In [7]:</div>
-    <div class="body-cell code"><span class="cmt"># a model with absolutely no business existing</span><br />plt.<span class="fn">bar</span>(week, <span class="fn">predict_joy</span>(week))</div>
-  </section>
-  <section class="cell">
-    <div class="gutter out">Out[7]:</div>
-    <div class="body-cell output">
-      <div class="chart" style="border:none;box-shadow:none;background:transparent;padding:0">
-        <div data-chart="week"></div>
-        <div class="cap">fig 3 · "xG of my week" — calibration pending. derby day remains an outlier.</div>
-      </div>
-    </div>
+  <section>
+    <h2 class="section-title">Tools</h2>
+    <p class="muted">{tools.join(' · ')}</p>
   </section>
 
-  <!-- In [8]: contact -->
-  <div class="cell-label" id="contact"># contact</div>
-  <section class="cell">
-    <div class="gutter">In [8]:</div>
-    <div class="body-cell">
-      <div class="callout">
-        <span class="label">OPEN TO</span>
-        <h3 style="margin:.3rem 0 .4rem">Let's talk models, markets, or football.</h3>
-        <p class="muted" style="margin-bottom:.9rem">I'm looking for data science, ML / data engineering, and quant internships — and I'm always happy to chat with peers about a project. Genuinely, just say hi.</p>
-        <div class="btn-row">
-          <a class="btn primary" href="mailto:vubach.nguyen@ontariotechu.net">✉ email me</a>
-          <a class="btn" href={asset('Resume.pdf')} target="_blank" rel="noopener">résumé.pdf</a>
-        </div>
-      </div>
-    </div>
+  <section>
+    <h2 class="section-title">About</h2>
+    <p>I'm a fourth-year Integrated Mathematics and Computer Science student at Ontario Tech University.</p>
+    <p>I like problems that sit between software, data, and mathematics. I've worked on internal IT systems and automation at the Canadian Mental Health Association, designed Azure data pipelines with Statistics Without Borders, and I'm now doing undergraduate research in continual learning and computer vision.</p>
+    <p>Outside of school and work: reading books and watching Barcelona and Arsenal.</p>
+  </section>
+
+  <section id="contact">
+    <h2 class="section-title">Get in touch</h2>
+    <p>The best way to reach me is <a href="mailto:vubach.nguyen@ontariotechu.net">vubach.nguyen@ontariotechu.net</a>. I'm also on <a href="https://www.linkedin.com/in/bach-nguyen-vu" target="_blank" rel="noopener">LinkedIn</a> and <a href="https://github.com/bachnguyennn" target="_blank" rel="noopener">GitHub</a>.</p>
   </section>
 </BaseLayout>

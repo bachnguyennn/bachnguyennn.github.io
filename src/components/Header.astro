@@ -1,44 +1,26 @@
 ---
-interface Props {
-  kernel?: string;
-}
-const { kernel = 'idle' } = Astro.props;
-
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
 
 const path = (Astro.url.pathname.replace(/\/$/, '') || '/');
 const rel = basePath && path.startsWith(basePath) ? path.slice(basePath.length) || '/' : path;
 
-const isHome = rel === '/';
 const isProjects = rel === '/projects' || rel.startsWith('/projects/');
 const isExperience = rel === '/experience';
 ---
 
-<header class="toolbar">
-  <div class="toolbar-inner">
+<header class="site-header">
+  <div class="wrap">
     <a class="brand" href={href('/')} aria-label="Bach Nguyen — home">
       <svg class="brand-mark" width="42" height="32" viewBox="0 0 64 48" aria-hidden="true">
         <text x="22" y="36" class="logo-ink" font-family="Newsreader, Georgia, serif" font-size="40" font-weight="600" text-anchor="middle">B</text>
         <text x="39" y="42" class="logo-accent" font-family="Newsreader, Georgia, serif" font-size="20" font-weight="600" text-anchor="middle">n</text>
       </svg>
     </a>
-    <span class="kernel"><span class="dot"></span>bach&nbsp;<small>· python 3 · {kernel}</small></span>
-    <nav class="nav" data-nav aria-label="Primary">
-      <a href={href('/')} class={isHome ? 'active' : ''}>README</a>
-      <a href={href('/projects')} class={isProjects ? 'active' : ''}>projects</a>
-      <a href={href('/experience')} class={isExperience ? 'active' : ''}>experience</a>
-      <a href={href('/#contact')}>contact</a>
+    <nav class="nav" aria-label="Primary">
+      <a href={href('/projects')} class={isProjects ? 'active' : ''}>Projects</a>
+      <a href={href('/experience')} class={isExperience ? 'active' : ''}>Experience</a>
+      <a href={href('/Resume.pdf')} target="_blank" rel="noopener">Resume</a>
     </nav>
-    <button class="menu-btn" type="button" data-menu-toggle aria-label="Toggle menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-      </svg>
-    </button>
-    <button class="theme-btn" type="button" data-theme-toggle aria-label="Toggle theme">
-      <svg class="ic sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
-      <svg class="ic moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      <span class="sun">light</span><span class="moon">dark</span>
-    </button>
   </div>
 </header>

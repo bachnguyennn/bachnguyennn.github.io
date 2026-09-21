@@ -14,48 +14,23 @@ const { Content } = await render(project);
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
-
-const domain = project.data.domainLabel ?? project.data.domain;
-const footMeta = `${project.data.experiment ?? project.id}.ipynb · kernel: python 3`;
 ---
 
 <BaseLayout
   title={`${project.data.title} — Bach Nguyen`}
   description={project.data.summary}
-  kernel="running…"
-  footMeta={footMeta}
 >
-  <!-- title -->
-  <section class="cell">
-    <div class="gutter">In [1]:</div>
-    <div class="body-cell md">
-      <p class="eyebrow">notebook · {domain} · {project.data.year ?? project.data.period}</p>
-      <h1>{project.data.title}</h1>
-      <p class="lead">{project.data.summary}</p>
-      <div class="chips">{project.data.tags.map((t, i) => <span class={i === 0 ? 'chip accent' : 'chip'}>{t}</span>)}</div>
-      <div class="btn-row">
-        {project.data.github && <a class="btn" href={project.data.github} target="_blank" rel="noopener">github →</a>}
-        <a class="btn" href={href('/projects')}>← all projects</a>
-      </div>
+  <a class="back" href={href('/projects')}>← All projects</a>
+  <p class="article-meta">{project.data.period} · {project.data.tags.join(' · ')}</p>
+  <h1 class="page-title">{project.data.title}</h1>
+  <p class="lead muted">{project.data.summary}</p>
+  {project.data.github && (
+    <div class="article-links">
+      <a href={project.data.github} target="_blank" rel="noopener">Code on GitHub →</a>
     </div>
-  </section>
+  )}
 
-  <!-- rendered notebook body -->
-  <section class="cell">
-    <div class="gutter">In [2]:</div>
-    <div class="body-cell md md-content">
-      <Content />
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="cell">
-    <div class="gutter blank">In [ ]:</div>
-    <div class="body-cell md">
-      <div class="btn-row">
-        <a class="btn primary" href={href('/#contact')}>talk to me about this →</a>
-        {project.data.github && <a class="btn" href={project.data.github} target="_blank" rel="noopener">read the code</a>}
-      </div>
-    </div>
-  </section>
+  <article class="prose">
+    <Content />
+  </article>
 </BaseLayout>

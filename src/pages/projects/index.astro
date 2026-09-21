@@ -11,81 +11,28 @@ const projects = (await getCollection('projects')).sort((a, b) => {
   if (yb !== ya) return yb - ya;
   return a.data.order - b.data.order;
 });
-
-const footMeta = `projects.ipynb · ${projects.length + 2} cells · kernel: python 3`;
 ---
 
 <BaseLayout
-  title="Experiments — Bach Nguyen"
-  description="Every experiment in the notebook: applied ML, quant, NLP, and computer vision — each with an honest verdict."
-  footMeta={footMeta}
+  title="Projects — Bach Nguyen"
+  description="Personal projects in machine learning, data, and computer vision."
 >
-  <!-- intro -->
-  <section class="cell">
-    <div class="gutter">In [1]:</div>
-    <div class="body-cell md">
-      <p class="eyebrow">/projects</p>
-      <h1>Projects</h1>
-      <p class="lead">Everything I've built, with the verdict attached. A common thread: I'd rather report an honest "no edge" or a leakage-free number than a flattering one that won't replicate.</p>
-    </div>
-  </section>
+  <h1 class="page-title">Projects</h1>
+  <p class="muted">Things I've built outside of work and research. Most have a longer write-up and all of them have code on GitHub.</p>
 
-  <!-- df table -->
-  <section class="cell">
-    <div class="gutter">In [2]:</div>
-    <div class="body-cell code">projects = pd.<span class="fn">read_csv</span>(<span class="str">"projects.csv"</span>)<br />projects.<span class="fn">sort_values</span>(<span class="str">"year"</span>, ascending=<span class="kw">False</span>)</div>
-  </section>
-  <section class="cell">
-    <div class="gutter out">Out[2]:</div>
-    <div class="body-cell output" style="overflow-x:auto">
-      <table class="df">
-        <thead>
-          <tr><th></th><th>experiment</th><th>domain</th><th>year</th><th>headline</th><th>notebook</th></tr>
-        </thead>
-        <tbody>
-          {projects.map((p, i) => (
-            <tr>
-              <td class="idx">{i}</td>
-              <td>{p.data.experiment ?? p.id}</td>
-              <td class="tag">{p.data.domainTag ?? p.data.domain}</td>
-              <td>{p.data.year ?? p.data.period}</td>
-              <td>{p.data.headline ?? p.data.summary}</td>
-              <td>{p.data.notebook !== false ? <a href={href(`/projects/${p.id}`)}>✓ open</a> : '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <p class="muted" style="font-family:var(--mono);font-size:.72rem;margin:.7rem 0 0">{projects.length} rows × 6 columns</p>
-    </div>
-  </section>
-
-  <!-- expanded cards -->
-  <div class="cell-label"># expanded — click through for the full write-up</div>
-  <section class="cell">
-    <div class="gutter">In [3]:</div>
-    <div class="body-cell">
-      {projects.map((p, i) => {
-        const hasNotebook = p.data.notebook !== false;
-        return (
-          <div style={i < projects.length - 1 ? 'padding-bottom:1.3rem;border-bottom:1px solid var(--line);margin-bottom:1.3rem' : ''}>
-            <p class="meta-tag">{p.data.domainLabel ?? p.data.domain} · {p.data.year ?? p.data.period}{p.data.featured ? ' · ★ featured' : ''}</p>
-            <h3>{p.data.title}</h3>
-            <p class="muted">{p.data.summary}</p>
-            <div class="chips">{p.data.tags.map((t, ti) => <span class={ti === 0 ? 'chip accent' : 'chip'}>{t}</span>)}</div>
-            <div class="btn-row">
-              {hasNotebook && <a class="btn primary" href={href(`/projects/${p.id}`)}>read notebook →</a>}
-              {p.data.github && <a class="btn" href={p.data.github} target="_blank" rel="noopener">github</a>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  </section>
-
-  <section class="cell">
-    <div class="gutter blank">In [ ]:</div>
-    <div class="body-cell md">
-      <p class="muted">Want the short version? The <a href={href('/')}>README</a> has the highlights, or just <a href={href('/#contact')}>email me</a> and ask which one I'd actually want to talk about.</p>
-    </div>
+  <section>
+    <ul class="entries">
+      {projects.map((p) => (
+        <li class="entry">
+          <div class="top"><h3>{p.data.title}</h3><span class="date">{p.data.period}</span></div>
+          <p>{p.data.summary}</p>
+          <p class="tags">{p.data.tags.join(' · ')}</p>
+          <span class="more">
+            {p.data.notebook !== false && <a href={href(`/projects/${p.id}`)}>Write-up →</a>}
+            {p.data.github && <a href={p.data.github} target="_blank" rel="noopener">GitHub →</a>}
+          </span>
+        </li>
+      ))}
+    </ul>
   </section>
 </BaseLayout>

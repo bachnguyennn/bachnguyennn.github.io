@@ -65,7 +65,7 @@ Then the part I care about most — *is it looking at the lungs, or cheating?* T
 
 ![Grad-CAM and Eigen-CAM overlays on a correct prediction](../../assets/projects/chest-xray-pneumonia/gradcam.png)
 
-## The honest verdict
+## Takeaways
 
 The model does what a screener should: high sensitivity, with its reasoning on display. But I also documented its **failure cases** — the 12 false negatives and 48 false positives — because in medical AI those are the most important images to study, and they show exactly where the model would be unreliable. It's a strong research prototype, not a clinical device, and I'm explicit about that. What I took away: defining the *right* error before training mattered more than any architecture choice.
 
