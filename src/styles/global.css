@@ -106,6 +106,21 @@ section { margin-top: 3.5rem; }
 .entry .tags { color: var(--faint); font-size: .88rem; margin: 0 0 .35rem; }
 .entry .more { font-size: .92rem; display: inline-flex; gap: 1rem; }
 
+/* tools grid — homepage */
+.tool-groups { display: grid; gap: 1.5rem; }
+.tool-group h3 { font-size: .92rem; font-weight: 500; color: var(--muted); margin-bottom: .6rem; }
+.tool-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.tool {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .4rem .75rem .4rem .55rem;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface);
+  font-size: .9rem; line-height: 1.2;
+}
+.tool img { width: 20px; height: 20px; flex: none; }
+/* near-black logos (Bash, pandas) disappear on the dark background */
+@media (prefers-color-scheme: dark) { .tool img.invert-dark { filter: invert(1) hue-rotate(180deg); } }
+
 /* ---------------- project write-ups ---------------- */
 .back { font-size: .92rem; display: inline-block; margin-bottom: 1.5rem; }
 .article-meta { color: var(--faint); font-size: .92rem; margin-bottom: .5rem; }

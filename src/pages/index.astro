@@ -31,10 +31,47 @@ const work = [
   },
 ];
 
-const tools = [
-  'Python', 'SQL', 'Java', 'C++', 'Bash', 'pandas', 'NumPy', 'scikit-learn', 'PyTorch',
-  'Azure', 'SharePoint', 'Power Apps', 'Power Automate', 'Excel / Power Query',
-  'MySQL', 'SQLite', 'Docker', 'Airflow', 'Git',
+// Icons live in public/tools/ (vendored from Iconify: devicon, selfhst, vscode-icons, arcticons).
+const toolGroups = [
+  {
+    label: 'Languages',
+    items: [
+      { name: 'Python', icon: 'python' },
+      { name: 'SQL', icon: 'sql' },
+      { name: 'Java', icon: 'java' },
+      { name: 'C++', icon: 'cplusplus' },
+      { name: 'Bash', icon: 'bash', invertDark: true },
+    ],
+  },
+  {
+    label: 'Data & ML',
+    items: [
+      { name: 'pandas', icon: 'pandas', invertDark: true },
+      { name: 'NumPy', icon: 'numpy' },
+      { name: 'scikit-learn', icon: 'scikit-learn' },
+      { name: 'PyTorch', icon: 'pytorch' },
+    ],
+  },
+  {
+    label: 'Cloud & Microsoft',
+    items: [
+      { name: 'Azure', icon: 'azure' },
+      { name: 'SharePoint', icon: 'sharepoint' },
+      { name: 'Power Apps', icon: 'power-apps' },
+      { name: 'Power Automate', icon: 'power-automate' },
+      { name: 'Excel / Power Query', icon: 'excel' },
+    ],
+  },
+  {
+    label: 'Databases & infra',
+    items: [
+      { name: 'MySQL', icon: 'mysql' },
+      { name: 'SQLite', icon: 'sqlite' },
+      { name: 'Docker', icon: 'docker' },
+      { name: 'Airflow', icon: 'airflow' },
+      { name: 'Git', icon: 'git' },
+    ],
+  },
 ];
 ---
 
@@ -104,11 +141,6 @@ const tools = [
   </section>
 
   <section>
-    <h2 class="section-title">Tools</h2>
-    <p class="muted">{tools.join(' · ')}</p>
-  </section>
-
-  <section>
     <h2 class="section-title">About</h2>
     <p>I'm a fourth-year Integrated Mathematics and Computer Science student at Ontario Tech University.</p>
     <p>I like problems that sit between software, data, and mathematics. I've worked on internal IT systems and automation at the Canadian Mental Health Association, designed Azure data pipelines with Statistics Without Borders, and I'm now doing undergraduate research in continual learning and computer vision.</p>
@@ -118,5 +150,23 @@ const tools = [
   <section id="contact">
     <h2 class="section-title">Get in touch</h2>
     <p>The best way to reach me is <a href="mailto:vubach.nguyen@ontariotechu.net">vubach.nguyen@ontariotechu.net</a>. I'm also on <a href="https://www.linkedin.com/in/bach-nguyen-vu" target="_blank" rel="noopener">LinkedIn</a> and <a href="https://github.com/bachnguyennn" target="_blank" rel="noopener">GitHub</a>.</p>
+  </section>
+  <section id="tools">
+    <h2 class="section-title">Tools I use</h2>
+    <div class="tool-groups">
+      {toolGroups.map((g) => (
+        <div class="tool-group">
+          <h3>{g.label}</h3>
+          <ul class="tool-list">
+            {g.items.map((t) => (
+              <li class="tool">
+                <img src={asset(`tools/${t.icon}.svg`)} class:list={[{ 'invert-dark': t.invertDark }]} alt="" width="20" height="20" loading="lazy" />
+                <span>{t.name}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   </section>
 </BaseLayout>
