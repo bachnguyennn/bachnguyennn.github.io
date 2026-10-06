@@ -1,0 +1,233 @@
+---
+// Floating "Chat with me" widget that talks to the FastAPI RAG backend (POST /ask).
+// Set PUBLIC_CHAT_API_URL to the deployed backend; defaults to local uvicorn.
+const apiUrl = (import.meta.env.PUBLIC_CHAT_API_URL ?? 'http://127.0.0.1:8000').replace(/\/$/, '');
+---
+
+<div class="chat" data-api={apiUrl}>
+  <div class="chat-panel" id="chat-panel" role="dialog" aria-label="Chat with Bach" hidden>
+    <div class="chat-head">
+      <div>
+        <strong>Ask Bach</strong>
+        <span>Questions about my work, projects, and experience</span>
+      </div>
+      <button class="chat-close" type="button" aria-label="Close chat">&times;</button>
+    </div>
+
+    <ol class="chat-log" aria-live="polite">
+      <li class="msg bot">Hi! I'm a bot trained on Bach's resume and projects. Ask me anything.</li>
+    </ol>
+
+    <form class="chat-form">
+      <input name="q" type="text" placeholder="Ask a question…" autocomplete="off" aria-label="Your question" required />
+      <button type="submit" aria-label="Send">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" /></svg>
+      </button>
+    </form>
+  </div>
+
+  <button class="chat-toggle" type="button" aria-expanded="false" aria-controls="chat-panel">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z" />
+    </svg>
+    <span>Chat with me</span>
+  </button>
+</div>
+
+<script>
+  type Source = { source: string; chunk_id: number };
+
+  const root = document.querySelector<HTMLElement>('.chat');
+  if (root) {
+    const api = root.dataset.api!;
+    const panel = root.querySelector<HTMLElement>('.chat-panel')!;
+    const toggle = root.querySelector<HTMLButtonElement>('.chat-toggle')!;
+    const close = root.querySelector<HTMLButtonElement>('.chat-close')!;
+    const log = root.querySelector<HTMLOListElement>('.chat-log')!;
+    const form = root.querySelector<HTMLFormElement>('.chat-form')!;
+    const input = form.querySelector<HTMLInputElement>('input')!;
+    const send = form.querySelector<HTMLButtonElement>('button')!;
+
+    const setOpen = (open: boolean) => {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) input.focus();
+      else toggle.focus();
+    };
+
+    toggle.addEventListener('click', () => setOpen(panel.hidden));
+    close.addEventListener('click', () => setOpen(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.hidden) setOpen(false);
+    });
+
+    const addMessage = (role: 'user' | 'bot', text: string, sources: Source[] = []) => {
+      const li = document.createElement('li');
+      li.className = `msg ${role}`;
+      li.textContent = text;
+      if (sources.length) {
+        const names = [...new Set(sources.map((s) => s.source))];
+        const small = document.createElement('small');
+        small.textContent = `Sources: ${names.join(', ')}`;
+        li.append(small);
+      }
+      log.append(li);
+      log.scrollTop = log.scrollHeight;
+      return li;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const question = input.value.trim();
+      if (!question) return;
+
+      addMessage('user', question);
+      input.value = '';
+      send.disabled = true;
+      const pending = addMessage('bot', 'Thinking…');
+      pending.classList.add('pending');
+
+      try {
+        const res = await fetch(`${api}/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: { answer: string; sources?: Source[] } = await res.json();
+        pending.remove();
+        addMessage('bot', data.answer, data.sources ?? []);
+      } catch (err) {
+        console.error('Chat request failed:', err);
+        pending.remove();
+        addMessage('bot', "Sorry, I couldn't reach the server. Please try again later.");
+      } finally {
+        send.disabled = false;
+        input.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .chat {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .75rem;
+    font-family: var(--sans);
+  }
+
+  .chat-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .7rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--bg);
+    font: 600 .92rem var(--sans);
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgb(0 0 0 / .18);
+    transition: transform .15s ease;
+  }
+  .chat-toggle:hover { transform: translateY(-2px); }
+  .chat-toggle:focus-visible, .chat button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .chat-panel {
+    width: min(360px, calc(100vw - 2rem));
+    height: min(480px, calc(100vh - 7rem));
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgb(0 0 0 / .2);
+    overflow: hidden;
+  }
+  .chat-panel[hidden] { display: none; }
+
+  .chat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .chat-head strong { display: block; font-size: .98rem; }
+  .chat-head span { font-size: .8rem; color: var(--muted); }
+  .chat-close {
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .chat-log {
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .msg {
+    max-width: 85%;
+    padding: .55rem .8rem;
+    border-radius: 12px;
+    font-size: .92rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .msg.bot { align-self: flex-start; background: var(--surface); color: var(--ink); }
+  .msg.user { align-self: flex-end; background: var(--accent); color: var(--bg); }
+  .msg.pending { color: var(--faint); font-style: italic; }
+  .msg small { display: block; margin-top: .35rem; font-size: .75rem; color: var(--faint); }
+
+  .chat-form {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem;
+    border-top: 1px solid var(--line);
+  }
+  .chat-form input {
+    flex: 1;
+    min-width: 0;
+    padding: .55rem .75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    font-size: .92rem;
+  }
+  .chat-form input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  .chat-form button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
+  }
+  .chat-form button:disabled { opacity: .5; cursor: wait; }
+
+  @media (max-width: 480px) {
+    .chat { right: 1rem; bottom: 1rem; }
+    .chat-toggle span { display: none; }
+    .chat-toggle { padding: .85rem; }
+  }
+</style>
