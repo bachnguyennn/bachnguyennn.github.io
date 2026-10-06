@@ -1,9 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { experience } from '../data/experience';
+import { courses, certifications } from '../data/courses';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const asset = (p: string) => `${basePath}/${p}`;
+const list = (cs: { name: string; current?: boolean }[]) =>
+  cs.map((c) => (c.current ? `${c.name} (in progress)` : c.name)).join(', ');
 ---
 
 <BaseLayout
@@ -31,9 +34,17 @@ const asset = (p: string) => `${basePath}/${p}`;
       <div class="top"><h3>Ontario Tech University</h3><span class="date">Sep 2023 – Apr 2027</span></div>
       <p class="sub">BSc (Hons), Integrated Mathematics &amp; Computer Science (Co-op)</p>
       <ul>
-        <li>GPA 3.77 / 4.3 · President's List (3×), Dean's List</li>
-        <li>Relevant coursework: Data Mining, Database Systems, Scientific Data Analysis, Data Structures, Statistics &amp; Probability</li>
+        <li>GPA 3.77 / 4.3 · President's List (3×), Dean's List (2×)</li>
+        <li>Math coursework: {list(courses.math)}</li>
+        <li>CS coursework: {list(courses.cs)}</li>
       </ul>
     </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Certifications</h2>
+    <ul class="entries certs">
+      {certifications.map((c) => <li>{c}</li>)}
+    </ul>
   </section>
 </BaseLayout>

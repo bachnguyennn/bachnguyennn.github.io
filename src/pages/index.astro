@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { experience } from '../data/experience';
+import { courses, certifications } from '../data/courses';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
@@ -50,6 +51,10 @@ const toolGroups = [
       { name: 'NumPy', icon: 'numpy' },
       { name: 'scikit-learn', icon: 'scikit-learn' },
       { name: 'PyTorch', icon: 'pytorch' },
+      { name: 'SciPy', icon: 'scipy' },
+      { name: 'Matplotlib', icon: 'matplotlib' },
+      { name: 'Jupyter', icon: 'jupyter' },
+      { name: 'BeautifulSoup', icon: 'beautifulsoup' },
     ],
   },
   {
@@ -63,13 +68,15 @@ const toolGroups = [
     ],
   },
   {
-    label: 'Databases & infra',
+    label: 'Databases & dev tools',
     items: [
-      { name: 'MySQL', icon: 'mysql' },
+      { name: 'MySQL', icon: 'mysql', invertDark: true },
       { name: 'SQLite', icon: 'sqlite' },
+      { name: 'IBM DB2', icon: 'db2', invertDark: true },
       { name: 'Docker', icon: 'docker' },
       { name: 'Airflow', icon: 'airflow' },
       { name: 'Git', icon: 'git' },
+      { name: 'Visual Studio', icon: 'visual-studio' },
     ],
   },
 ];
@@ -136,8 +143,34 @@ const toolGroups = [
     <div class="entry">
       <div class="top"><h3>Ontario Tech University</h3><span class="date">2023 – 2027</span></div>
       <p class="sub">BSc (Hons), Integrated Mathematics &amp; Computer Science (Co-op)</p>
-      <p class="muted">GPA 3.77 / 4.3 · President's List (3×), Dean's List</p>
+      <p class="muted">GPA 3.77 / 4.3 · President's List (3×), Dean's List (2×)</p>
     </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Relevant coursework</h2>
+    <div class="tool-groups">
+      {[
+        { label: 'Mathematics', items: courses.math },
+        { label: 'Computer Science', items: courses.cs },
+      ].map((g) => (
+        <div class="tool-group">
+          <h3>{g.label}</h3>
+          <ul class="tool-list">
+            {g.items.map((c) => (
+              <li class="tool course">{c.name}{c.current && <span class="current">in progress</span>}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Certifications</h2>
+    <ul class="entries certs">
+      {certifications.map((c) => <li>{c}</li>)}
+    </ul>
   </section>
 
   <section>

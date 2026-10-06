@@ -118,7 +118,11 @@ section { margin-top: 3.5rem; }
   font-size: .9rem; line-height: 1.2;
 }
 .tool img { width: 20px; height: 20px; flex: none; }
-/* near-black logos (Bash, pandas) disappear on the dark background */
+/* coursework reuses the tool chips, minus the icon */
+.tool.course { padding-left: .75rem; }
+.tool .current { color: var(--faint); font-size: .78rem; margin-left: .1rem; }
+.certs { gap: .4rem; }
+/* dark logos (Bash, pandas, MySQL, IBM) disappear on the dark background */
 @media (prefers-color-scheme: dark) { .tool img.invert-dark { filter: invert(1) hue-rotate(180deg); } }
 
 /* ---------------- project write-ups ---------------- */
