@@ -1,7 +1,10 @@
 ---
 // Floating "Chat with me" widget that talks to the FastAPI RAG backend (POST /ask).
-// Set PUBLIC_CHAT_API_URL to the deployed backend; defaults to local uvicorn.
-const apiUrl = (import.meta.env.PUBLIC_CHAT_API_URL ?? 'http://127.0.0.1:8000').replace(/\/$/, '');
+// Defaults to the deployed Azure Container App; set PUBLIC_CHAT_API_URL to override
+// (e.g. PUBLIC_CHAT_API_URL=http://127.0.0.1:8000 for a local uvicorn).
+const apiUrl = (
+  import.meta.env.PUBLIC_CHAT_API_URL ?? 'https://ask-bach-api.yellowbush-fb5a973b.canadacentral.azurecontainerapps.io'
+).replace(/\/$/, '');
 ---
 
 <div class="chat" data-api={apiUrl}>
