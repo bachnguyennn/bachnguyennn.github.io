@@ -38,8 +38,6 @@ const apiUrl = (
 </div>
 
 <script>
-  type Source = { source: string; chunk_id: number };
-
   const root = document.querySelector<HTMLElement>('.chat');
   if (root) {
     const api = root.dataset.api!;
@@ -64,16 +62,10 @@ const apiUrl = (
       if (e.key === 'Escape' && !panel.hidden) setOpen(false);
     });
 
-    const addMessage = (role: 'user' | 'bot', text: string, sources: Source[] = []) => {
+    const addMessage = (role: 'user' | 'bot', text: string) => {
       const li = document.createElement('li');
       li.className = `msg ${role}`;
       li.textContent = text;
-      if (sources.length) {
-        const names = [...new Set(sources.map((s) => s.source))];
-        const small = document.createElement('small');
-        small.textContent = `Sources: ${names.join(', ')}`;
-        li.append(small);
-      }
       log.append(li);
       log.scrollTop = log.scrollHeight;
       return li;
@@ -97,9 +89,9 @@ const apiUrl = (
           body: JSON.stringify({ question }),
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: { answer: string; sources?: Source[] } = await res.json();
+        const data: { answer: string } = await res.json();
         pending.remove();
-        addMessage('bot', data.answer, data.sources ?? []);
+        addMessage('bot', data.answer);
       } catch (err) {
         console.error('Chat request failed:', err);
         pending.remove();
@@ -196,7 +188,6 @@ const apiUrl = (
   .msg.bot { align-self: flex-start; background: var(--surface); color: var(--ink); }
   .msg.user { align-self: flex-end; background: var(--accent); color: var(--bg); }
   .msg.pending { color: var(--faint); font-style: italic; }
-  .msg small { display: block; margin-top: .35rem; font-size: .75rem; color: var(--faint); }
 
   .chat-form {
     display: flex;
