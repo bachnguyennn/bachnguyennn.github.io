@@ -9,6 +9,16 @@ const asset = (p: string) => `${basePath}/${p}`;
 
 const work = [
   {
+    title: 'Ask Bach — RAG Chatbot',
+    sub: 'Personal project · the chat button on this site',
+    body: 'Built a chatbot that answers questions about my background using hybrid retrieval (Cosmos DB vector search + BM25, fused with RRF) and a Groq-hosted LLM, served by FastAPI on Azure Container Apps. Hybrid retrieval hit 100% Recall@3 and 0.95 MRR@3 on my evaluation set.',
+    tags: 'Python · FastAPI · Azure Cosmos DB · Docker · Groq',
+    links: [
+      { label: 'Write-up →', url: href('/projects/ask-bach') },
+      { label: 'GitHub →', url: 'https://github.com/bachnguyennn/AskBachBot' },
+    ],
+  },
+  {
     title: 'Continual Learning Research',
     sub: 'Ontario Tech Visual Computing Lab',
     body: 'Implemented a 10M-parameter CascadedViT variant under CPG (Compacting, Picking, and Growing). Currently working on the expert-routing mechanism in SEMA with a CascadedViT co-author.',

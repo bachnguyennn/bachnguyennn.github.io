@@ -7,7 +7,7 @@ domain: ml
 domainLabel: "ML Systems Research"
 tags: ["PyTorch", "Continual Learning", "State-Space", "Fast Weights", "Ablation Study"]
 featured: true
-order: 0
+order: 1
 github: "https://github.com/bachnguyennn/nested_learning"
 experiment: "nested_learning"
 domainTag: "ml-research"
