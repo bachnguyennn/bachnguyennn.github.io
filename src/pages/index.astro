@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { experience } from '../data/experience';
+import ExperienceList from '../components/ExperienceList.astro';
 import { courses, certifications } from '../data/courses';
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -127,14 +127,7 @@ const toolGroups = [
 
   <section>
     <h2 class="section-title">Experience</h2>
-    <ul class="entries">
-      {experience.map((e) => (
-        <li class="entry">
-          <div class="top"><h3>{e.role}</h3><span class="date">{e.date}</span></div>
-          <p class="sub">{e.org}</p>
-        </li>
-      ))}
-    </ul>
+    <ExperienceList />
     <p style="margin-top:1.75rem"><a href={href('/experience')}>Details →</a></p>
   </section>
 

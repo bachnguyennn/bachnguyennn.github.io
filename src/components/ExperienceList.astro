@@ -1,0 +1,91 @@
+---
+// Experience entries, rendered from src/data/experience.ts at build time and then
+// refreshed in the browser from the FastAPI backend (GET /content/experience, backed by Cosmos DB).
+// An API record replaces the build-time entry with the same id; records with a new id are appended.
+// Entries not yet in Cosmos keep their build-time content, which is also the fallback if the API is down.
+import { experience } from '../data/experience';
+
+interface Props {
+  // Show highlight bullets (the /experience page) or just role, org and date (the homepage).
+  details?: boolean;
+}
+
+const { details = false } = Astro.props;
+
+// Same base URL as ChatWidget: PUBLIC_CHAT_API_URL, defaulting to the deployed Azure Container App.
+const apiUrl = (
+  import.meta.env.PUBLIC_CHAT_API_URL ?? 'https://ask-bach-api.yellowbush-fb5a973b.canadacentral.azurecontainerapps.io'
+).replace(/\/$/, '');
+---
+
+<ul class="entries" data-experience-list data-api={apiUrl} data-details={details ? 'true' : undefined}>
+  {experience.map((e) => (
+    <li class="entry" data-id={e.id}>
+      <div class="top"><h3>{e.role}</h3><span class="date">{e.date}</span></div>
+      <p class="sub">{e.org}</p>
+      {details && <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>}
+    </li>
+  ))}
+</ul>
+
+<script>
+  interface ApiExperience {
+    id: string;
+    role: string;
+    organization: string;
+    period: string;
+    highlights?: string[];
+  }
+
+  function renderEntry(e: ApiExperience, details: boolean): HTMLLIElement {
+    const li = document.createElement('li');
+    li.className = 'entry';
+    li.dataset.id = e.id;
+
+    const top = document.createElement('div');
+    top.className = 'top';
+    const role = document.createElement('h3');
+    role.textContent = e.role;
+    const date = document.createElement('span');
+    date.className = 'date';
+    date.textContent = e.period;
+    top.append(role, date);
+
+    const org = document.createElement('p');
+    org.className = 'sub';
+    org.textContent = e.organization;
+    li.append(top, org);
+
+    if (details && e.highlights?.length) {
+      const bullets = document.createElement('ul');
+      for (const h of e.highlights) {
+        const item = document.createElement('li');
+        item.textContent = h;
+        bullets.appendChild(item);
+      }
+      li.appendChild(bullets);
+    }
+    return li;
+  }
+
+  async function loadExperience(list: HTMLElement) {
+    const details = list.dataset.details === 'true';
+    try {
+      const response = await fetch(`${list.dataset.api}/content/experience`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data: { experiences: ApiExperience[] } = await response.json();
+
+      for (const e of data.experiences) {
+        const entry = renderEntry(e, details);
+        const existing = list.querySelector<HTMLElement>(`:scope > [data-id="${CSS.escape(e.id)}"]`);
+        if (existing) existing.replaceWith(entry);
+        else list.appendChild(entry);
+      }
+    } catch (error) {
+      // Keep the build-time entries.
+      console.error('Unable to load experience from API:', error);
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-experience-list]').forEach(loadExperience);
+</script>

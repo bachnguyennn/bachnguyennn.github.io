@@ -1,7 +1,9 @@
 // Single source for roles shown on the homepage and /experience.
 // Keep in sync with the resume.
+// `id` matches the Cosmos DB document id; the live API version of an entry replaces this one on page load.
 export const experience = [
   {
+    id: 'vcl-research-experience',
     role: 'Undergraduate Thesis Researcher',
     org: 'Visual Computing Lab, Ontario Tech University · supervised by Dr. Faisal Qureshi',
     date: 'Sep 2026 – present',
@@ -11,6 +13,7 @@ export const experience = [
     ],
   },
   {
+    id: 'math-ta-experience',
     role: 'Teaching Assistant, Prep. Math for Engineers (MATH-0900U)',
     org: 'Ontario Tech University',
     date: 'Sep 2026 – present',
@@ -19,6 +22,7 @@ export const experience = [
     ],
   },
   {
+    id: 'cmha-experience',
     role: 'IT Intern',
     org: 'Canadian Mental Health Association · Oshawa, ON',
     date: 'May – Aug 2025',
@@ -30,6 +34,7 @@ export const experience = [
     ],
   },
   {
+    id: 'cs-club-experience',
     role: 'Events Coordinator',
     org: 'Ontario Tech Computer Science Club',
     date: 'Sep 2025 – present',
@@ -38,6 +43,7 @@ export const experience = [
     ],
   },
   {
+    id: 'swb-experience',
     role: 'Data Engineer (Volunteer)',
     org: 'Statistics Without Borders · Project #279 (IPÊ, Institute for Ecological Research)',
     date: 'Feb 2024',
