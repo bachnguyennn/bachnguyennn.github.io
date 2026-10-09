@@ -28,6 +28,26 @@ const projects = [
       { label: 'GitHub →', url: 'https://github.com/bachnguyennn/Hospital_Readmission_prediction' },
     ],
   },
+  {
+    title: 'Chest X-Ray Pneumonia Detection',
+    sub: 'Personal project',
+    body: 'Fine-tuned a ResNet50 to screen pediatric chest X-rays for pneumonia, tuned for 96.9% recall because a missed case costs more than a false alarm. Grad-CAM overlays show which parts of the image each prediction relies on.',
+    tags: 'Python · PyTorch · ResNet50 · Grad-CAM',
+    links: [
+      { label: 'Write-up →', url: href('/projects/chest-xray-pneumonia') },
+      { label: 'GitHub →', url: 'https://github.com/bachnguyennn/Chest_X-Pneumonia-Detection' },
+    ],
+  },
+  {
+    title: 'Electricity Load Forecasting',
+    sub: 'Personal project',
+    body: 'Compared Prophet, XGBoost, an LSTM, and a Temporal Fusion Transformer for hourly demand forecasting on PJM data using walk-forward validation. XGBoost on lag features won with 0.81% MAPE.',
+    tags: 'Python · XGBoost · LSTM · Prophet · SHAP',
+    links: [
+      { label: 'Write-up →', url: href('/projects/energy-demand-forecasting') },
+      { label: 'GitHub →', url: 'https://github.com/bachnguyennn/Energy-Demand-Prediction' },
+    ],
+  },
 ];
 
 // Icons live in public/tools/ (vendored from Iconify: devicon, selfhst, vscode-icons, arcticons).
