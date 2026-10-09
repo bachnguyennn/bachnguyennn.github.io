@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const cvitPaper = 'https://arxiv.org/abs/2511.14111';
+---
+
+<BaseLayout
+  title="Research — Bach Nguyen"
+  description="Undergraduate thesis research on continual learning for CascadedViT, a lightweight vision transformer, to reduce catastrophic forgetting."
+>
+  <p class="article-meta">Undergraduate thesis · Visual Computing Lab, Ontario Tech University · Sep 2026 – present</p>
+  <h1 class="page-title">Continual Learning for CascadedViT</h1>
+  <p class="lead muted">I'm studying how CascadedViT, a lightweight vision transformer from our lab, can keep learning new tasks without catastrophically forgetting the old ones. Supervised by Dr. Faisal Qureshi.</p>
+  <div class="article-links">
+    <a href={cvitPaper} target="_blank" rel="noopener">CascadedViT paper (arXiv) →</a>
+  </div>
+
+  <article class="prose">
+    <h2>The problem: catastrophic forgetting</h2>
+    <p>Train a network on one task, then fine-tune it on a second, and its accuracy on the first usually collapses. The gradients for the new task overwrite the weights that encoded the old one. This is <strong>catastrophic forgetting</strong>.</p>
+    <p>The simple fix is to retrain on all the data every time something new arrives. That means storing every past example and paying for a full training run on each update, which doesn't work when data arrives over time, can't be kept, or the model lives on a small device. Continual learning looks for ways to learn a sequence of tasks while keeping what the model already knows. The core tension is <em>stability</em> (don't forget) against <em>plasticity</em> (still learn new things).</p>
+
+    <h2>Why CascadedViT</h2>
+    <p><a href={cvitPaper} target="_blank" rel="noopener">CascadedViT (CViT)</a>, by Srivathsan Sivakumar and Faisal Qureshi, is a vision transformer built for compute- and battery-constrained hardware. Its Cascaded-Chunk Feed-Forward Network (CCFFN) splits features into chunks to cut parameters and FLOPs. In the paper, CViT-XL reaches 75.5% top-1 on ImageNet-1K with 15% fewer FLOPs and 3.3% less energy than EfficientViT-M5.</p>
+    <p>The phones and drones CViT is designed for are also where continual learning matters most. A deployed model should pick up new classes on the device, where retraining from scratch or storing all past data isn't realistic. But most continual learning work has been done on larger backbones, and a compact model has less spare capacity to share between tasks.</p>
+
+    <h2>What I'm working on</h2>
+    <p>My thesis asks: <strong>how can a compact, efficient vision transformer like CViT learn continually without forgetting, while staying small and cheap to run?</strong></p>
+    <p>Keeping old knowledge usually costs something, whether that's extra parameters, extra compute, or stored data. For a model whose whole point is efficiency, those costs matter as much as accuracy. I'm looking for approaches that reduce forgetting in CViT without giving up what makes it efficient.</p>
+    <p>This work is ongoing, and I'll share more here once it's ready to be made public.</p>
+  </article>
+</BaseLayout>

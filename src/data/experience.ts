@@ -8,8 +8,7 @@ export const experience = [
     org: 'Visual Computing Lab, Ontario Tech University · supervised by Dr. Faisal Qureshi',
     date: 'Sep 2026 – present',
     bullets: [
-      "Exploring continual learning methods for parameter-efficient vision transformers, building on the lab's CascadedViT architecture.",
-      'Implemented a 10M-parameter CascadedViT variant under CPG (Compacting, Picking, and Growing); collaborating with a CascadedViT co-author on the expert-routing mechanism in SEMA.',
+      "Researching continual learning for CascadedViT, the lab's lightweight vision transformer, to reduce catastrophic forgetting while keeping the model efficient.",
     ],
   },
   {

@@ -7,9 +7,9 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const href = (p: string) => `${basePath}${p}` || '/';
 const asset = (p: string) => `${basePath}/${p}`;
 
-const work = [
+const projects = [
   {
-    title: 'Ask Bach — RAG Chatbot',
+    title: 'Ask Bach - RAG Chatbot',
     sub: 'Personal project · the chat button on this site',
     body: 'Built a chatbot that answers questions about my background using hybrid retrieval (Cosmos DB vector search + BM25, fused with RRF) and a Groq-hosted LLM, served by FastAPI on Azure Container Apps. Hybrid retrieval hit 100% Recall@3 and 0.95 MRR@3 on my evaluation set.',
     tags: 'Python · FastAPI · Azure Cosmos DB · Docker · Groq',
@@ -17,18 +17,6 @@ const work = [
       { label: 'Write-up →', url: href('/projects/ask-bach') },
       { label: 'GitHub →', url: 'https://github.com/bachnguyennn/AskBachBot' },
     ],
-  },
-  {
-    title: 'Continual Learning Research',
-    sub: 'Ontario Tech Visual Computing Lab',
-    body: 'Implemented a 10M-parameter CascadedViT variant under CPG (Compacting, Picking, and Growing). Currently working on the expert-routing mechanism in SEMA with a CascadedViT co-author.',
-    tags: 'Python · PyTorch · Vision Transformers',
-  },
-  {
-    title: 'Booking Automation',
-    sub: 'Canadian Mental Health Association',
-    body: 'Built booking workflows in Power Apps and Power Automate that eliminated recurring double-booking errors and saved staff an estimated 5+ hours of manual scheduling per week.',
-    tags: 'Power Apps · Power Automate · SharePoint',
   },
   {
     title: 'Hospital Readmission Risk Model',
@@ -104,7 +92,7 @@ const toolGroups = [
     </div>
   </div>
 
-  <p class="lead">I build software, data systems, and machine learning projects. I'm finishing my BSc at Ontario Tech and doing undergraduate thesis research on continual learning in the Visual Computing Lab.</p>
+  <p class="lead">I build software, data systems, and machine learning projects. I'm finishing my BSc at Ontario Tech and doing undergraduate thesis research on <a href={href('/research')}>continual learning</a> in the Visual Computing Lab.</p>
 
   <div class="links">
     <a href="https://github.com/bachnguyennn" target="_blank" rel="noopener">GitHub</a>
@@ -114,9 +102,9 @@ const toolGroups = [
   </div>
 
   <section>
-    <h2 class="section-title">Selected work</h2>
+    <h2 class="section-title">Selected projects</h2>
     <ul class="entries">
-      {work.map((w) => (
+      {projects.map((w) => (
         <li class="entry">
           <h3>{w.title}</h3>
           <p class="sub">{w.sub}</p>
