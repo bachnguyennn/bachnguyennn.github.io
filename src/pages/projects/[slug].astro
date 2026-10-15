@@ -24,9 +24,10 @@ const href = (p: string) => `${basePath}${p}` || '/';
   <p class="article-meta">{project.data.period} · {project.data.tags.join(' · ')}</p>
   <h1 class="page-title">{project.data.title}</h1>
   <p class="lead muted">{project.data.summary}</p>
-  {project.data.github && (
+  {(project.data.github || project.data.demo) && (
     <div class="article-links">
-      <a href={project.data.github} target="_blank" rel="noopener">Code on GitHub →</a>
+      {project.data.demo && <a href={project.data.demo} target="_blank" rel="noopener">Live demo →</a>}
+      {project.data.github && <a href={project.data.github} target="_blank" rel="noopener">Code on GitHub →</a>}
     </div>
   )}
 

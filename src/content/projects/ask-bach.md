@@ -7,7 +7,7 @@ domain: ml
 domainLabel: "LLM / RAG Systems"
 tags: ["Python", "FastAPI", "RAG", "Azure Cosmos DB", "Azure Container Apps", "Docker", "Groq"]
 featured: true
-order: 0
+order: 1
 github: "https://github.com/bachnguyennn/AskBachBot"
 year: 2026
 ---

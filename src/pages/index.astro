@@ -9,6 +9,17 @@ const asset = (p: string) => `${basePath}/${p}`;
 
 const projects = [
   {
+    title: 'MarketGuard - Crypto Anomaly Pipeline',
+    sub: 'Personal project',
+    body: 'Built a pipeline that streams live Coinbase trades into Azure Blob Storage, cleans them into Delta Lake with Spark, and flags volume spikes and price jumps using rolling z-scores. Replay-safe from start to finish: Silver stays at 100 → 100 → 100 rows across duplicate replays and restarts.',
+    tags: 'Python · Spark · Delta Lake · Kafka · Azure · Streamlit',
+    links: [
+      { label: 'Write-up →', url: href('/projects/market-guard') },
+      { label: 'Live demo →', url: 'https://market-guard-coinbase.streamlit.app/' },
+      { label: 'GitHub →', url: 'https://github.com/bachnguyennn/Market-Guard' },
+    ],
+  },
+  {
     title: 'Ask Bach - RAG Chatbot',
     sub: 'Personal project · the chat button on this site',
     body: 'Built a chatbot that answers questions about my background using hybrid retrieval (Cosmos DB vector search + BM25, fused with RRF) and a Groq-hosted LLM, served by FastAPI on Azure Container Apps. Hybrid retrieval hit 100% Recall@3 and 0.95 MRR@3 on my evaluation set.',

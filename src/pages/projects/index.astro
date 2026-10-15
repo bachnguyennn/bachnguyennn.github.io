@@ -29,6 +29,7 @@ const projects = (await getCollection('projects')).sort((a, b) => {
           <p class="tags">{p.data.tags.join(' · ')}</p>
           <span class="more">
             {p.data.notebook !== false && <a href={href(`/projects/${p.id}`)}>Write-up →</a>}
+            {p.data.demo && <a href={p.data.demo} target="_blank" rel="noopener">Live demo →</a>}
             {p.data.github && <a href={p.data.github} target="_blank" rel="noopener">GitHub →</a>}
           </span>
         </li>
