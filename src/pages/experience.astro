@@ -1,42 +1,88 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ExperienceList from '../components/ExperienceList.astro';
-import { courses, certifications } from '../data/courses';
-
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const asset = (p: string) => `${basePath}/${p}`;
-const list = (cs: { name: string; current?: boolean }[]) =>
-  cs.map((c) => (c.current ? `${c.name} (in progress)` : c.name)).join(', ');
+import { workExperience, leadership } from '../data/experience';
+import { education } from '../data/education';
+import { certifications } from '../data/certifications';
+import { profile } from '../data/profile';
+import { withBase } from '../lib/urls';
 ---
 
 <BaseLayout
-  title="Experience — Bach Nguyen"
-  description="Research, teaching, IT, and data engineering experience."
+  title="Experience"
+  description="Bach Nguyen's experience: undergraduate thesis research in the Visual Computing Lab, teaching, an IT internship at the Canadian Mental Health Association, volunteer data engineering, and student leadership."
 >
-  <h1 class="page-title">Experience</h1>
-  <p class="muted">The same information as my <a href={asset('Resume.pdf')} target="_blank" rel="noopener">resume</a>, newest first.</p>
+  <header class="page-header">
+    <div class="container">
+      <p class="eyebrow">Experience</p>
+      <h1>Research, teaching, and industry</h1>
+      <p class="lede">
+        From automating scheduling for clinical staff to research on continual learning, newest first. The same record appears on my
+        <a href={withBase('/resume/')}>resume</a>.
+      </p>
+      <div class="actions">
+        <a class="btn btn-secondary" href={withBase('/resume/')}>View full resume</a>
+        <a class="btn btn-ghost" href={withBase(profile.resumePdf)} download="Bach-Nguyen-Resume.pdf">Download PDF</a>
+      </div>
+    </div>
+  </header>
 
-  <section>
-    <ExperienceList details />
-  </section>
-
-  <section>
-    <h2 class="section-title">Education</h2>
-    <div class="entry">
-      <div class="top"><h3>Ontario Tech University</h3><span class="date">Sep 2023 – Apr 2027</span></div>
-      <p class="sub">BSc (Hons), Integrated Mathematics &amp; Computer Science (Co-op)</p>
-      <ul>
-        <li>GPA 3.77 / 4.3 · President's List (3×), Dean's List (2×)</li>
-        <li>Math coursework: {list(courses.math)}</li>
-        <li>CS coursework: {list(courses.cs)}</li>
-      </ul>
+  <section class="section" aria-labelledby="work-title">
+    <div class="container xp-layout">
+      <div class="xp-side">
+        <h2 id="work-title">Work &amp; research</h2>
+        <p>Research, teaching, an industry internship, and volunteer data engineering.</p>
+      </div>
+      <ExperienceList entries={workExperience} live />
     </div>
   </section>
 
-  <section>
-    <h2 class="section-title">Certifications</h2>
-    <ul class="entries certs">
-      {certifications.map((c) => <li>{c}</li>)}
-    </ul>
+  <section class="section" aria-labelledby="lead-title">
+    <div class="container xp-layout">
+      <div class="xp-side">
+        <h2 id="lead-title">Leadership &amp; community</h2>
+        <p>Organizing events and mentoring students.</p>
+      </div>
+      <ExperienceList entries={leadership} />
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="edu-title">
+    <div class="container xp-layout">
+      <div class="xp-side">
+        <h2 id="edu-title">Education &amp; certifications</h2>
+      </div>
+      <div class="edu-block">
+        <div class="edu-row">
+          <div>
+            <h3>{education.school}</h3>
+            <p class="muted">{education.degree}</p>
+            <p class="muted">GPA {education.gpa} · {education.honours.join(' · ')}</p>
+          </div>
+          <span class="meta">{education.start} – {education.end}</span>
+        </div>
+        <h3 class="cert-title">Certifications</h3>
+        <ul class="certs">
+          {certifications.map((c) => <li>{c.name}</li>)}
+        </ul>
+        <p><a class="text-link" href={withBase('/resume/#coursework')}>Coursework and skills on the resume <span class="arrow" aria-hidden="true">→</span></a></p>
+      </div>
+    </div>
   </section>
 </BaseLayout>
+
+<style>
+  .xp-layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: var(--s-7); }
+  .xp-side h2 { font-family: var(--serif); font-size: var(--fs-lg); font-weight: 500; }
+  .xp-side p { margin-top: var(--s-2); font-size: var(--fs-sm); color: var(--muted); }
+  .edu-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s-2) var(--s-5); }
+  .edu-row h3 { font-size: 1.0625rem; }
+  .edu-row p { margin: .2rem 0 0; }
+  .muted { color: var(--muted); }
+  .cert-title { margin: var(--s-6) 0 var(--s-2); font-size: 1rem; }
+  .certs { margin: 0 0 var(--s-5); padding-left: 1.1rem; color: var(--ink-2); }
+  .certs li { margin: .25rem 0; }
+  @media (max-width: 860px) {
+    .xp-layout { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); }
+  }
+</style>

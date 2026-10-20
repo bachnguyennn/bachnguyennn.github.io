@@ -1,39 +1,117 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { projectCategories, type ProjectCategory } from '../../lib/taxonomy';
+import { getProjects } from '../../lib/projects';
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const href = (p: string) => `${basePath}${p}` || '/';
-
-const projects = (await getCollection('projects')).sort((a, b) => {
-  const ya = a.data.year ?? 0;
-  const yb = b.data.year ?? 0;
-  if (yb !== ya) return yb - ya;
-  return a.data.order - b.data.order;
-});
+const projects = await getProjects();
+const featured = projects.filter((p) => p.data.featured);
+const rest = projects.filter((p) => !p.data.featured);
+const counts = Object.fromEntries(
+  (Object.keys(projectCategories) as ProjectCategory[]).map((c) => [c, projects.filter((p) => p.data.categories.includes(c)).length]),
+) as Record<ProjectCategory, number>;
 ---
 
 <BaseLayout
-  title="Projects — Bach Nguyen"
-  description="Personal projects in software, data, and machine learning."
+  title="Projects"
+  description="Machine learning, applied AI, computer vision, and data engineering projects by Bach Nguyen, with case studies covering design, evaluation, and limitations."
 >
-  <h1 class="page-title">Projects</h1>
-  <p class="muted">Things I've built outside of work and research. Most have a longer write-up and all of them have code on GitHub.</p>
+  <header class="page-header">
+    <div class="container">
+      <p class="eyebrow">Portfolio · {projects.length} projects</p>
+      <h1>Projects</h1>
+      <p class="lede">
+        Things I have built for research, work, and my own curiosity. Most have a case study that explains the design,
+        how I evaluated it, and what did not work. Status labels say exactly what is deployed and what is not.
+      </p>
+    </div>
+  </header>
 
-  <section>
-    <ul class="entries">
-      {projects.map((p) => (
-        <li class="entry">
-          <div class="top"><h3>{p.data.title}</h3><span class="date">{p.data.period}</span></div>
-          <p>{p.data.summary}</p>
-          <p class="tags">{p.data.tags.join(' · ')}</p>
-          <span class="more">
-            {p.data.notebook !== false && <a href={href(`/projects/${p.id}`)}>Write-up →</a>}
-            {p.data.demo && <a href={p.data.demo} target="_blank" rel="noopener">Live demo →</a>}
-            {p.data.github && <a href={p.data.github} target="_blank" rel="noopener">GitHub →</a>}
-          </span>
-        </li>
-      ))}
-    </ul>
+  <section class="section-tight" aria-label="Project list">
+    <div class="container">
+      <div class="filters" role="group" aria-label="Filter projects by area">
+        <button type="button" class="filter" data-filter="all" aria-pressed="true">All <span>{projects.length}</span></button>
+        {(Object.keys(projectCategories) as ProjectCategory[]).map((c) => (
+          <button type="button" class="filter" data-filter={c} aria-pressed="false">{projectCategories[c]} <span>{counts[c]}</span></button>
+        ))}
+      </div>
+      <p class="filter-status visually-hidden" role="status" aria-live="polite"></p>
+
+      <h2 class="list-title" data-group="featured">Featured</h2>
+      <div class="project-grid" data-group="featured">
+        {featured.map((p) => <ProjectCard project={p} />)}
+      </div>
+
+      <h2 class="list-title" data-group="more">More projects</h2>
+      <div class="project-grid" data-group="more">
+        {rest.map((p) => <ProjectCard project={p} />)}
+      </div>
+
+      <p class="empty" hidden>No projects in this category.</p>
+    </div>
   </section>
 </BaseLayout>
+
+<script>
+  // Progressive enhancement: without JS every project is listed and the filter bar is hidden by CSS
+  // (html.js is set in <head>, so the bar is laid out from the first paint and nothing shifts).
+  const bar = document.querySelector<HTMLElement>('.filters');
+  if (bar) {
+    const buttons = [...bar.querySelectorAll<HTMLButtonElement>('button[data-filter]')];
+    const cards = [...document.querySelectorAll<HTMLElement>('.project-card')];
+    const groups = [...document.querySelectorAll<HTMLElement>('.project-grid[data-group]')];
+    const status = document.querySelector<HTMLElement>('.filter-status')!;
+    const empty = document.querySelector<HTMLElement>('.empty')!;
+
+    const apply = (filter: string, announce = true) => {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      let shown = 0;
+      cards.forEach((card) => {
+        const match = filter === 'all' || (card.dataset.categories ?? '').split(' ').includes(filter);
+        card.hidden = !match;
+        if (match) shown++;
+      });
+      groups.forEach((g) => {
+        const visible = [...g.children].some((c) => !(c as HTMLElement).hidden);
+        g.hidden = !visible;
+        const title = document.querySelector<HTMLElement>(`.list-title[data-group="${g.dataset.group}"]`);
+        if (title) title.hidden = !visible;
+      });
+      empty.hidden = shown > 0;
+      if (announce) status.textContent = `${shown} project${shown === 1 ? '' : 's'} shown`;
+      const url = new URL(location.href);
+      if (filter === 'all') url.searchParams.delete('area');
+      else url.searchParams.set('area', filter);
+      history.replaceState(null, '', url);
+    };
+
+    bar.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-filter]');
+      if (btn) apply(btn.dataset.filter!);
+    });
+
+    const initial = new URLSearchParams(location.search).get('area');
+    if (initial && buttons.some((b) => b.dataset.filter === initial)) apply(initial, false);
+  }
+</script>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-bottom: var(--s-6); }
+  :global(html:not(.js)) .filters { display: none; }
+  .filter {
+    display: inline-flex; align-items: center; gap: .45rem; min-height: 40px; padding: .35rem .85rem;
+    border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--ink-2);
+    font: 500 .875rem/1.2 var(--sans); cursor: pointer;
+  }
+  .filter span { font: 400 .75rem var(--mono); color: var(--faint); }
+  .filter:hover { border-color: var(--ink-2); }
+  .filter[aria-pressed='true'] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .filter[aria-pressed='true'] span { color: color-mix(in srgb, var(--bg) 70%, transparent); }
+
+  .list-title { margin: var(--s-6) 0 var(--s-4); font: 500 var(--fs-xs)/1.4 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+  .list-title:first-of-type { margin-top: 0; }
+  .list-title[hidden], .project-grid[hidden] { display: none; }
+  .project-grid { display: grid; gap: var(--s-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); }
+  .project-grid :global(.project-card[hidden]) { display: none; }
+  .empty { color: var(--muted); }
+</style>

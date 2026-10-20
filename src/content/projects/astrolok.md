@@ -1,69 +1,68 @@
 ---
-title: "AstroLoc-ML — Deep-Learning Plate Solver"
-summary: "Can a CNN plate-solve the night sky from raw pixels? An honest end-to-end attempt — and why geometry beats deep learning here."
-role: "Researcher & Builder"
+title: "AstroLoc-ML: Can a CNN Plate-Solve the Sky?"
+shortTitle: "AstroLoc-ML"
+summary: "An end-to-end attempt to regress a camera's sky position from raw star-field pixels, with a synthetic data pipeline, and a clear negative result explained."
+problem: "Test whether deep learning can replace geometric star-pattern matching for locating where a telescope image points."
+categories: [cv, research]
+status: experimental
+statusNote: "Negative result: the CNN performed close to random; the classical solver works."
+role: "Sole developer"
 period: "2025"
-domain: cv
-domainLabel: "Deep Learning / Astronomy"
-tags: ["PyTorch", "EfficientNet", "Spherical Regression", "Synthetic Data"]
-featured: false
-order: 5
-github: "https://github.com/bachnguyennn/astro-ml"
-experiment: "astroloc_ml"
-domainTag: "cv"
-headline: "geometry beats deep learning here"
 year: 2025
+order: 9
+stack: ["Python", "PyTorch", "EfficientNet", "OpenCV", "NumPy"]
+result:
+  value: "65.6°"
+  label: "best mean angular error"
+  context: "A random guess on the sphere averages about 90°. The classical triangle-hash solver succeeds."
+github: "https://github.com/bachnguyennn/astro-ml"
+cover: "../../assets/projects/astrolok/fov-grid.png"
+coverAlt: "A grid of synthetic star fields rendered at different fields of view."
 ---
 
-> **TL;DR —** Can a CNN plate-solve the night sky from raw pixels? No — and the clean negative result shows exactly why geometric matching, not deep learning, is the right tool for the job.
+## Overview
 
-## The question I wanted to answer
+"Plate solving" means looking at a photo of the night sky and working out exactly where the camera was pointing: right ascension, declination, rotation, and field of view. Classical solvers match star patterns. I asked whether a neural network could learn the task end to end from pixels, and committed in advance to reporting the outcome either way.
 
-"Plate solving" is the task of looking at a photo of the night sky and figuring out *exactly where the camera was pointing* — its right ascension, declination, rotation, and field of view. Classical solvers do this by matching star patterns. I wanted to ask a research question: **can a neural network learn to plate-solve end-to-end, straight from pixels — and if I'm honest about the results, what does that teach me about where deep learning helps and where it doesn't?**
+## Data
 
-I committed up front to reporting the real outcome, good or bad.
-
-## Getting to know the data
-
-Real labelled night-sky images are scarce, so I built a **synthetic data pipeline** from the HYG star catalogue (~41,500 stars). Exploring the catalogue and the renderer was half the project.
-
-The stars aren't evenly spread — the Milky Way's band and catalogue depth create real structure across the sky:
+Real labeled sky images are scarce, so I built a **synthetic data pipeline** from the HYG star catalogue (~41,500 stars). The catalogue has real structure, such as the Milky Way band and uneven depth:
 
 ![Sky coverage of the star catalogue](../../assets/projects/astrolok/sky-coverage.png)
 
-And star brightness follows a steep distribution — a few bright anchors, many faint ones — which determines what's even visible in a given frame:
+Brightness follows a steep distribution: a few bright anchors and many faint stars, which decides what is visible in a frame.
 
 ![Magnitude distribution of catalogue stars](../../assets/projects/astrolok/mag-distribution.png)
 
-To make training images, I rendered star fields with **gnomonic (tangent-plane) projection** — the geometrically correct projection for a small field of view — splatting magnitude-weighted Gaussian blobs and layering in realistic photon and read noise:
+Training images use **gnomonic (tangent-plane) projection**, the geometrically correct projection for a small field of view, with magnitude-weighted Gaussian stars and photon and read noise.
 
 ![Rendered fields of view at different scales](../../assets/projects/astrolok/fov-grid.png)
 
-## How I thought about it
+## Approach
 
-The most interesting design problem was the *output*. My first instinct — regress raw angles (RA, Dec, rotation) — failed badly: angles wrap around (359° and 1° are neighbours), so the loss had a discontinuity and the network wandered off predicting nonsense like RA = −117°.
+The hardest design problem was the output. Regressing raw angles failed: 359° and 1° are neighbours, so the loss has a discontinuity, and the network drifted to impossible values like RA = −117°. The fix is the standard one for rotational targets: predict **(sin, cos)** pairs and recover the angle with `atan2`, which makes the target continuous. I used an EfficientNet-B0 backbone with a three-phase transfer schedule: train the head, unfreeze later blocks, then optionally fine-tune on real solved images.
 
-The fix is the standard trick for any rotational/spherical target: predict **(sin, cos) pairs** and reconstruct the angle with `atan2`. That mapping is smooth and continuous, so the loss landscape becomes smooth too. I paired it with a **three-phase transfer-learning** schedule on an EfficientNet-B0 backbone (train head → unfreeze later blocks → optional real-image fine-tune).
+## Results
 
-## What I found
-
-Here's where the honesty matters. The training loss fell smoothly — but the *angular error* barely moved:
+The training loss fell smoothly, but the angular error barely moved:
 
 ![Three-phase training curves](../../assets/projects/astrolok/training-curves.png)
 
-| Run | Train samples | Best angular error | Within 5° |
+| Run | Training samples | Best angular error | Within 5° |
 |---|---:|---:|---:|
 | Fast | 5,000 | 65.6° | 1.7% |
 | Standard (sin/cos) | 20,000 | 76.6° | 0.2% |
 
-A random guess on a sphere averages ~90°. My model got to ~65–77°: **barely better than random.** When you overlay the model's predicted sky position onto the real stars, they simply don't line up:
+A random guess on a sphere averages about 90°, so the model is barely better than chance. Overlaying a predicted field on the real stars makes it obvious:
 
-![Predicted field overlaid on the actual stars — they don't match](../../assets/projects/astrolok/demo-overlay.png)
+![Predicted field overlaid on the actual stars; they do not line up](../../assets/projects/astrolok/demo-overlay.png)
 
-## Why it didn't work
+## Why it did not work
 
-Digging into *why* was the real payoff. Three causes converged: (1) ImageNet features don't transfer to star fields — dots on black are wildly out-of-distribution; (2) 20k synthetic samples isn't nearly enough for a 5M-parameter model; and most fundamentally, (3) **plate solving is a geometric-matching problem, not a feature-learning one.** Recognising "that's Orion's belt" and triangulating from it is exactly what classical asterism matching does well and what a generic CNN does poorly.
+Three causes combine. ImageNet features do not transfer to points of light on black. 20,000 synthetic samples are far too few for a 5M-parameter model. Most importantly, **plate solving is a geometric matching problem**, not a feature-learning one. Recognizing an asterism and triangulating from it is exactly what classical matching does well.
 
-So I also built the **classical triangle-hash solver** (the same approach Astrometry.net uses) as the baseline — and it works. The takeaway I value most from this project: knowing *when not to reach for deep learning* is itself a skill, and a clean negative result with a clear explanation is worth more than a vague positive one.
+So I also built the classical **triangle-hash solver**, the approach Astrometry.net uses, as the baseline, and it works.
 
-**Stack:** PyTorch · EfficientNet-B0 · OpenCV · NumPy · gnomonic projection
+## What I learned
+
+Knowing when not to use deep learning is a skill. A negative result with a clear explanation was more useful to me than a vague positive one.

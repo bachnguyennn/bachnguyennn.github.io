@@ -9,14 +9,23 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "node --experimental-strip-types --test \"tests/unit/*.test.ts\"",
+    "test:links": "node scripts/check-links.mjs",
+    "test:e2e": "astro build && playwright test",
+    "verify": "npm run check && npm test && npm run build && npm run test:links && playwright test",
+    "og": "node scripts/generate-og.mjs"
   },
   "dependencies": {
+    "@astrojs/mdx": "^5.0.6",
     "@astrojs/sitemap": "^3.7.3",
     "astro": "^6.1.9",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.11",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^22.15.17",
     "typescript": "^5.8.3"
   }

@@ -47,10 +47,18 @@ jobs:
             echo "PUBLIC_BASE_PATH=/$REPO_NAME/" >> "$GITHUB_ENV"
           fi
 
+      - name: Type-check and unit tests
+        run: |
+          npm run check
+          npm test
+
       - name: Build
         run: npm run build
         env:
           PUBLIC_CHAT_API_URL: https://ask-bach-api.yellowbush-fb5a973b.canadacentral.azurecontainerapps.io
+
+      - name: Check internal links
+        run: npm run test:links
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

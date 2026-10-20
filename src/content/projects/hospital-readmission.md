@@ -1,63 +1,69 @@
 ---
 title: "Hospital Readmission Risk Model"
-summary: "30-day readmission prediction where the methodology is the point: leakage-free validation over a flattering number."
-role: "Builder"
+summary: "A 30-day readmission model for diabetic patients where the evaluation design matters more than the score: patient-level deduplication, an ordered hold-out, and AUPRC-first metrics."
+problem: "Predict a rare clinical outcome without the patient leakage and optimistic metrics that make many results on this dataset look better than they are."
+categories: [ml]
+status: complete
+role: "Sole developer"
 period: "2025"
-domain: ml
-domainLabel: "Clinical ML"
-tags: ["LightGBM", "XGBoost", "AUPRC", "Optuna", "SHAP"]
-featured: false
-order: 4
-github: "https://github.com/bachnguyennn/Hospital_Readmission_prediction"
-experiment: "hospital_readmission"
-domainTag: "clinical-ml"
-headline: "leakage-free > flattering AUC"
 year: 2025
+order: 6
+stack: ["Python", "XGBoost", "LightGBM", "scikit-learn", "Optuna", "SHAP"]
+result:
+  value: "0.128"
+  label: "AUPRC, XGBoost"
+  context: "Against a no-skill baseline of about 0.09, the positive rate. AUROC 0.634."
+github: "https://github.com/bachnguyennn/Hospital_Readmission_prediction"
+resume:
+  - "Modeled 30-day readmission risk across ~100k patient encounter records, keeping one encounter per patient and encoding high-cardinality diagnosis and medication fields."
+  - "Held out the last 20% of encounters by encounter ID and scored with AUPRC on a 9% positive class: XGBoost reached 0.128 against a ~0.09 no-skill baseline."
+  - "Applied SHAP to identify leading risk drivers, including admission complexity, prior admissions, and medication count."
 ---
 
-> **TL;DR —** A 30-day readmission model where the methodology is the point: temporal validation, deduplication, and AUPRC-first scoring earn an honest 0.128 instead of a leaky, inflated number.
+## Overview
 
-## The question I wanted to answer
+A model that predicts whether a diabetic patient will be readmitted within 30 days, built on the UCI "Diabetes 130-US hospitals" dataset (~100,000 encounters). I treated it mainly as an exercise in not fooling myself: this dataset makes it easy to report a flattering number for the wrong reasons.
 
-Hospital readmissions are expensive and often preventable. A 30-day readmission usually means something was missed at discharge — so hospitals have a real incentive to flag high-risk patients early. The question I set out to answer: **can I predict which diabetic patients will be readmitted within 30 days — and, just as importantly, can I do it in a way that wouldn't fall apart in the real world?**
+## The problem
 
-This project is less about chasing a big number and more about *not fooling myself*, because clinical data makes it very easy to do exactly that.
+Three properties of the data drove every decision:
 
-## Getting to know the data
+1. **Rare outcome.** Only about 9% of encounters end in a 30-day readmission. A model that predicts "no readmission" for everyone is 91% accurate and useless.
+2. **Repeat patients.** The same patient appears many times. A random split puts the same person in train and test, and the model gets credit for recognizing them.
+3. **Messy, high-cardinality fields.** Thousands of diagnosis codes, two dozen medication columns, and missing values coded as `?`.
 
-I used the well-known UCI diabetes dataset (~100k encounters). Three things I found during exploration completely shaped the approach:
+## Approach
 
-1. **Severe class imbalance** — only ~9% of patients are readmitted within 30 days. Accuracy is meaningless here; a model that says "no one comes back" is 91% accurate and 100% useless.
-2. **The same patient appears multiple times.** If I split naively, a patient could land in both train and test — the model would "remember" them and inflate its score.
-3. **High-cardinality, messy fields** — diagnosis codes, medication columns, missing values everywhere.
+- **One encounter per patient.** I kept each patient's first encounter, so no person appears on both sides of the split.
+- **Ordered hold-out.** Encounters are sorted by `encounter_id` and the last 20% form the test set. The dataset has no admission dates, so this is a proxy for time order, not a verified chronological split (see limitations).
+- **AUPRC as the headline metric.** With 9% positives, ROC-AUC looks good easily; precision-recall focuses on the class that matters. For reference, a random classifier scores an AUPRC equal to the positive rate, about 0.09.
+- **Models:** logistic regression as the baseline, then XGBoost and LightGBM with Optuna tuning and class weighting (SMOTE as a fallback).
 
-## How I thought about it
-
-Each of those findings became a deliberate design decision:
-
-- **Temporal validation.** I sorted encounters chronologically and held out the last 20% — mirroring a real deployment where you train on the past and predict the future, never the reverse.
-- **First-encounter deduplication.** I kept only each patient's first visit, so no identity leaks across the split.
-- **AUPRC as the headline metric.** With 9% positives, ROC-AUC is overly flattering; the precision-recall curve focuses on the rare class that actually matters.
-- **Models + tuning:** XGBoost, LightGBM, and a logistic-regression baseline, with Optuna for hyperparameters and SMOTE/class-weighting to handle the imbalance.
-
-## What I found
+## Results
 
 | Model | AUPRC | AUROC | F1 |
 |---|---:|---:|---:|
 | **XGBoost** | **0.128** | **0.634** | **0.168** |
 | LightGBM | 0.120 | 0.621 | 0.164 |
-| Logistic Regression | 0.100 | 0.603 | 0.150 |
+| Logistic regression | 0.100 | 0.603 | 0.150 |
 
-![Precision-Recall curve](../../assets/projects/hospital-readmission/pr-curve.png)
+![Precision-recall curve on the hold-out set](../../assets/projects/hospital-readmission/pr-curve.png)
 
-These numbers are *modest* — and that's honest. This is a famously hard benchmark, and once you remove the leakage that inflates a lot of published attempts, the real ceiling is low. The value here is a pipeline that earns its number rather than borrowing it from a leaky split.
+The numbers are modest. XGBoost's AUPRC is about 1.4× the no-skill baseline, and the gain over logistic regression is small. That is a realistic picture of what structured administrative data can predict here once repeat patients are removed.
 
-A SHAP analysis made the model interpretable for a clinical audience — the strongest drivers of readmission risk were **admission complexity, prior admissions, and total medications**, which line up with clinical intuition:
+SHAP on the LightGBM model pointed to **admission complexity, prior admissions, and total medications** as the strongest drivers, which match clinical intuition:
 
 ![SHAP beeswarm for the LightGBM model](../../assets/projects/hospital-readmission/shap-beeswarm.png)
 
-## Takeaways
+## Limitations
 
-The methodology *is* the project: temporal splits, deduplication, and AUPRC-first evaluation are what make the result trustworthy. I'd rather report a real 0.128 than a leaky 0.4. Next steps would be survival analysis (time-to-readmission instead of a binary flag) and a fairness audit across demographic groups before anything like this went near a real workflow.
+- **The split is ordered by ID, not by date.** `encounter_id` ordering may roughly follow time, but the dataset does not document that. I would not call this a chronological validation, and some temporal leakage cannot be ruled out.
+- **First-encounter deduplication changes the population.** The model is evaluated on first visits only, which have fewer prior-history signals than the full set of encounters.
+- **One hold-out, no confidence intervals.** The differences between XGBoost and LightGBM are within what a different split could change.
+- **No fairness audit.** Performance across demographic groups was not examined, which would be required before any real use.
 
-**Stack:** LightGBM · XGBoost · scikit-learn · Optuna · SHAP · SMOTE
+## What I learned
+
+The evaluation design is the result. Deduplicating by patient and picking the metric for the base rate changed the story more than any model choice, and writing down what the split does *not* guarantee is part of the job.
+
+**Next:** survival analysis (time to readmission instead of a 30-day flag), bootstrap intervals on the hold-out metrics, and a subgroup fairness check.

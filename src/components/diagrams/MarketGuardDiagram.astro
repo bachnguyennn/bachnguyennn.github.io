@@ -1,0 +1,34 @@
+---
+// MarketGuard's two execution paths, kept visually separate on purpose: the cloud collector
+// and the Kafka/Spark streaming path are different deployments (see the Market-Guard README).
+import Flow, { type FlowStep } from './Flow.astro';
+
+interface Props { compact?: boolean; caption?: boolean }
+const { compact = false, caption = true } = Astro.props;
+
+const cloud: FlowStep[] = [
+  { kicker: 'Source', title: 'Coinbase WebSocket', detail: 'BTC-USD, ETH-USD trades' },
+  { kicker: 'Collector', title: 'Azure Container Apps', detail: 'asyncio, batches of 100 trades or 5 s' },
+  { kicker: 'Bronze', title: 'Azure Blob (JSONL)', detail: 'immutable raw archive', tone: 'store' },
+  { kicker: 'Refresh', title: 'Manual GitHub Actions run', detail: 'rebuilds Silver → Gold → alerts' },
+  { kicker: 'Publish', title: 'Parquet + SHA-256 manifest', detail: 'dashboard verifies before showing', tone: 'accent' },
+];
+
+const local: FlowStep[] = [
+  { kicker: 'Source', title: 'Deterministic test trades', detail: 'seeded with known anomalies' },
+  { kicker: 'Queue', title: 'Kafka', detail: '2 partitions, run in Docker' },
+  { kicker: 'Silver', title: 'Spark Structured Streaming', detail: 'insert-only MERGE on (product, trade_id)', tone: 'store' },
+  { kicker: 'Gold', title: 'One-minute metrics', detail: 'count, volume, notional, VWAP', tone: 'store' },
+  { kicker: 'Detect', title: 'Rolling z-score alerts', detail: 'volume spikes, price jumps', tone: 'accent' },
+];
+---
+
+<figure class="figure-diagram">
+  <Flow steps={cloud} label="MarketGuard cloud ingestion path" lane="Cloud path" laneNote="Live collector; analytics refreshed by hand" compact={compact} />
+  <Flow steps={local} label="MarketGuard local streaming path" lane="Streaming path" laneNote="Runs locally and in CI, not hosted" compact={compact} />
+  {caption && (
+    <figcaption>
+      Both paths share the same Spark transformations and detectors. The Streamlit dashboard reads published snapshots and never presents them as a live feed.
+    </figcaption>
+  )}
+</figure>

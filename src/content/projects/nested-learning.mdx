@@ -1,0 +1,67 @@
+---
+title: "Nested Learning: Extending a HOPE Reproduction"
+shortTitle: "Nested Learning Architecture"
+summary: "Experimental extensions to an open-source reproduction of Google's Nested Learning (HOPE) architecture: fused delta-rule kernels, a constant-size slow-memory tier, and ablations on WikiText-103."
+problem: "Make a multi-timescale memory architecture faster and cheaper to scale, and find out which of its components actually help."
+categories: [research, ml]
+status: experimental
+statusNote: "Exploratory research code; no published benchmark results."
+role: "Contributor to an existing open-source codebase"
+period: "2026"
+year: 2026
+order: 4
+stack: ["Python", "PyTorch", "Triton (via flash-linear-attention)", "Hydra", "uv", "pytest"]
+github: "https://github.com/bachnguyennn/nested_learning"
+---
+
+import Flow from '../../components/diagrams/Flow.astro';
+
+## Overview
+
+Google's Nested Learning paper describes HOPE, an architecture in which parts of the model update at different speeds: some weights change at every token, others only every few hundred steps. This project starts from an **existing open-source, mechanism-level reproduction** of HOPE by [kmccleary3301](https://github.com/kmccleary3301/nested_learning) (Apache-2.0). I imported it in April 2026 and built on top of it.
+
+## What was already there, and what I added
+
+**From the upstream reproduction** (not my work): HOPE blocks, the Continuum Memory System (CMS), Self-Modifying Titans, the `nl` command-line tool, the data pipeline, the evaluation scripts, and the fidelity tests.
+
+**My contributions**, all visible in the repository's commit history from April 2026:
+
+- **Fused delta-rule kernels.** Integrated the Triton kernels from *flash-linear-attention* (FLA) into the Self-Modifying Titans update path, including the dtype handling at the kernel boundary (fp16 kernel inputs, native-dtype projections).
+- **Multi-head FLA.** Split the model dimension into heads so the kernel's 256-dimension head limit holds at larger widths, with a dedicated, properly initialized initial state per head.
+- **Constant-size slow memory.** Added a slot-based tier (`cms_ultra`) with a fixed *K × D* key-value memory read by linear cross-attention, so its cost no longer grows with model width the way the MLP tiers do.
+- **Fast-weight dropout.** During training, occasionally switching off in-context fast-weight updates so the slow tiers still receive gradient. This targets a "slow-weight starvation" problem I observed, where the fast weights absorbed most of the learning signal.
+- **A config bug fix.** `cms_hidden_multiplier` was silently dropped between the YAML config and the model, so ablations that set it were not doing anything. I wired it through and added tests.
+- **Ablations, and a removal.** I added an iterative refinement block, ablated its number of inner steps on **WikiText-103**, found that it overfit in offline training, and removed it.
+
+## Memory hierarchy in my configuration
+
+<figure class="figure-diagram">
+  <Flow
+    label="Memory tiers in the experimental configuration"
+    steps={[
+      { kicker: 'In context', title: 'Self-modifying Titans', detail: 'fast weights, FLA delta-rule kernel', tone: 'accent' },
+      { kicker: 'Every step', title: 'CMS fast tier', detail: 'MLP memory' },
+      { kicker: 'Every 16 steps', title: 'CMS slow tier', detail: 'MLP memory' },
+      { kicker: 'Every 64 steps', title: 'CMS ultra tier', detail: 'fixed K × D slot memory', tone: 'store' },
+    ]}
+  />
+  <figcaption>Update cadence of each memory level in the experimental <code>kaggle_fla_test</code> configuration.</figcaption>
+</figure>
+
+## Validation
+
+- Unit tests for the new code paths (`tests/test_fsrm_changes.py`) and a minimal test that bypasses the CLI and Hydra for quick checks.
+- Short comparison runs on Kaggle GPUs against a baseline configuration with the new features switched off (configs and the notebook script are in the repository).
+- A measured check before changing a default: reducing the CMS hidden multiplier from 4× to 1× changed the loss slope by about 1.5%, within run-to-run noise, while cutting the MLP cost.
+
+## Limitations
+
+- These are **short, small-scale runs**. I have not published perplexity or benchmark results, and nothing here reproduces the paper's reported numbers.
+- Some features, such as the slot memory, were added and smoke-tested but not yet evaluated at a scale where their benefit could show.
+- The repository currently carries the upstream README unchanged; it should state more clearly which parts are upstream and which are mine.
+
+## What I learned
+
+Working inside someone else's research codebase is its own skill: reading the paper-to-code mapping, keeping upstream tests green, and making changes small enough to attribute. The config bug taught me to check that an ablation knob actually changes the model before trusting its result.
+
+A related follow-up, [nested_learning_vision](https://github.com/bachnguyennn/nested_learning_vision), adapts the slow/mid/fast hierarchy to image classification with a matrix-only optimizer (M3) and a catastrophic-forgetting benchmark.

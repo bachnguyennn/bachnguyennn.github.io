@@ -1,13 +1,15 @@
 ---
 title: "Ontario Infrastructure & Community Development Analysis"
-summary: "Cleaned and standardized 19 columns of Ontario Open Data, filled missing regions and coordinates through a geocoding API, and mapped how projects, funding, and completion timelines are distributed across the province."
+shortTitle: "Ontario Infrastructure Analysis"
+summary: "An exploratory analysis of Ontario's planned and in-progress infrastructure projects: regional distribution, funding sources, and completion timelines, with interactive maps."
+problem: "Clean and complete an open government dataset well enough to answer where projects are, who funds them, and when they finish."
+categories: [data]
+status: complete
 role: "Analyst"
 period: "2024"
-domain: data
-domainLabel: "Data Analysis"
-tags: ["Python", "pandas", "Folium", "Geocoding"]
-order: 8
-github: "https://github.com/bachnguyennn/Ontario-Infrastructure-Analysis"
 year: 2024
-notebook: false
+order: 11
+stack: ["Python", "pandas", "Seaborn", "Folium", "Nominatim geocoding"]
+github: "https://github.com/bachnguyennn/Ontario-Infrastructure-Analysis"
+caseStudy: false
 ---

@@ -1,72 +1,81 @@
 ---
 title: "Interpretable Chest X-Ray Pneumonia Detection"
-summary: "A ResNet50 pneumonia screener tuned for 96.9% recall, with Grad-CAM overlays to show where it's looking."
-role: "Builder"
+shortTitle: "Chest X-Ray Pneumonia Detection"
+summary: "A ResNet50 classifier for pediatric chest X-rays, tuned for high pneumonia recall, with Grad-CAM and Eigen-CAM overlays to check what the model is looking at."
+problem: "Build a screening-style classifier where missing a pneumonia case costs more than a false alarm, and make its evidence inspectable."
+categories: [ml, cv]
+status: complete
+statusNote: "Research prototype. Not validated or intended for clinical use."
+role: "Sole developer"
 period: "2025"
-domain: cv
-domainLabel: "Medical Computer Vision"
-tags: ["PyTorch", "ResNet50", "Transfer Learning", "Grad-CAM", "Explainability"]
-featured: true
-order: 2
-github: "https://github.com/bachnguyennn/Chest_X-Pneumonia-Detection"
-experiment: "chest_xray_pneumonia"
-domainTag: "cv"
-headline: "96.9% recall + Grad-CAM"
 year: 2025
+order: 3
+featured: true
+stack: ["Python", "PyTorch", "torchvision", "ResNet50", "Grad-CAM", "scikit-learn"]
+result:
+  value: "96.9%"
+  label: "Pneumonia recall (378 / 390)"
+  context: "Official Kaggle test split (624 images). Specificity is 79.5%: 48 of 234 normal images were flagged."
+github: "https://github.com/bachnguyennn/Chest_X-Pneumonia-Detection"
+cover: "../../assets/projects/chest-xray-pneumonia/gradcam.png"
+coverAlt: "A chest X-ray next to its Grad-CAM and Eigen-CAM heatmaps, with activation concentrated over the lung fields."
+resume:
+  - "Fine-tuned an ImageNet-pretrained ResNet50 on pediatric chest X-rays with weighted sampling and a weighted loss, selecting checkpoints by validation F1."
+  - "Reached 96.9% pneumonia recall and 0.975 PR-AUC on the held-out test split, and documented the trade-off: 79.5% specificity."
+  - "Added Grad-CAM and Eigen-CAM overlays and reviewed false negatives and false positives to see where the model fails."
 ---
 
-> **TL;DR —** A ResNet50 pneumonia screener tuned for 96.9% recall — catching almost every case — with Grad-CAM overlays so you can see it's looking at the lungs, not the labels.
+> For research and education only. This model is not validated for, or intended for, clinical diagnosis.
 
-> For research and education only — not validated or intended for clinical diagnosis.
+## Overview
 
-## The question I wanted to answer
+A ResNet50 classifier that labels pediatric chest X-rays as normal or pneumonia. The question I cared about was not "what is the highest accuracy?" but "if this were a screening tool, which mistake is acceptable?" A missed pneumonia is worse than a false alarm, so the model is tuned for recall, and every prediction comes with a heatmap showing which part of the image drove it.
 
-I wanted to build a pneumonia screener for chest X-rays — but the framing I cared about wasn't "what's the highest accuracy?" It was: **if this were a real screening tool, what kind of mistake is acceptable?**
+## The problem
 
-In screening, a *missed* pneumonia case (false negative) is far more dangerous than a false alarm (false positive). So the question I actually set out to answer was: *can I build a model that catches almost every pneumonia case, stays honest about its false alarms, and can show me where it's looking so I can trust it?*
+The dataset is the public Kaggle pediatric chest X-ray set (Guangzhou Women and Children's Medical Center). Two things shaped the design:
 
-## Getting to know the data
+1. **Class imbalance.** There are far more pneumonia images than normal ones, so a model that always predicts pneumonia already looks accurate. Accuracy could not be the headline metric.
+2. **Shortcut risk.** Contrast, positioning, and burned-in markers vary between images. A CNN can learn those cues instead of the lungs, and the metrics would not show it.
 
-The dataset is the Kaggle pediatric chest X-ray set (Guangzhou Women and Children's Medical Center). Two things jumped out during exploration:
+## Approach
 
-1. **It's imbalanced** — there are far more pneumonia images than normal ones. A model that just guesses "pneumonia" would score deceptively well on accuracy. That immediately ruled out accuracy as my headline metric.
-2. **The images vary in contrast, positioning, and artifacts** — normal anatomical variation can genuinely *look* like opacity. This is exactly the kind of thing that fools a model into learning the wrong cue (a label in the corner, the image border) instead of the lungs.
+- **Backbone:** ResNet50 with ImageNet weights. The head is trained first with the backbone frozen, then later blocks are fine-tuned.
+- **Imbalance:** weighted random sampling plus weighted cross-entropy.
+- **Model selection:** the best checkpoint by validation **F1**, not accuracy.
+- **Interpretability:** Grad-CAM (gradient-based) and Eigen-CAM (activation-based) overlays from the last convolutional block.
 
-These two observations set the whole design: I needed imbalance handling, a precision-recall view of performance, and — critically — a way to *see what the model attends to.*
+## Results
 
-## How I thought about it
-
-- **Backbone:** ResNet50 with ImageNet transfer learning — strong features, stable training, and a clean final conv block that's ideal for class-activation maps.
-- **Imbalance:** weighted random sampling + weighted cross-entropy, so the minority "normal" class isn't drowned out.
-- **Training:** freeze the backbone and train the head first, then fine-tune later layers, saving the best checkpoint by validation **F1** (not accuracy).
-- **The tradeoff, made on purpose:** I tuned toward high pneumonia recall, accepting more false positives. In a screening context that's the *right* error to make.
-- **Trust:** I added **Grad-CAM and Eigen-CAM** overlays so every prediction comes with a visual of where the model's evidence came from.
-
-## What I found
-
-On the held-out test split:
+Evaluated once on the official test split (624 images: 390 pneumonia, 234 normal) with the saved best checkpoint.
 
 | Metric | Value |
 |---|---:|
+| Pneumonia recall (sensitivity) | **96.9%** |
+| Specificity | 79.5% |
+| Precision (pneumonia) | 88.7% |
+| PR-AUC | 0.975 |
+| ROC-AUC | 0.965 |
 | Accuracy | 90.4% |
-| ROC-AUC | 96.5% |
-| PR-AUC | 97.5% |
-| **Pneumonia recall** | **96.9%** |
-
-The model catches **96.9% of pneumonia cases** — exactly the behaviour I designed for. The confusion matrix shows the tradeoff working as intended: very few missed pneumonias (12), at the cost of more false alarms (48 normals flagged):
 
 ![Confusion matrix on the test split](../../assets/projects/chest-xray-pneumonia/confusion-matrix.png)
 
-Because the classes are imbalanced, the precision-recall curve is the honest view of ranking quality:
+The confusion matrix shows the trade-off I chose: **12 missed pneumonias** against **48 normal images flagged**. Because the classes are imbalanced, the precision-recall curve is the more informative view of ranking quality:
 
-![Precision-Recall curve for the pneumonia class](../../assets/projects/chest-xray-pneumonia/pr-curve.png)
+![Precision-recall curve for the pneumonia class](../../assets/projects/chest-xray-pneumonia/pr-curve.png)
 
-Then the part I care about most — *is it looking at the lungs, or cheating?* The Grad-CAM / Eigen-CAM overlays put the original X-ray next to gradient-based and activation-based evidence maps:
+## Checking what the model attends to
+
+The overlays put the original image next to the gradient-based and activation-based evidence maps. In the correct prediction below, activation sits over the lung fields rather than the image border or text markers. I also went through the 12 false negatives and 48 false positives, because those are the cases that show where the model would be unreliable.
 
 ![Grad-CAM and Eigen-CAM overlays on a correct prediction](../../assets/projects/chest-xray-pneumonia/gradcam.png)
 
-## Takeaways
+## Limitations
 
-The model does what a screener should: high sensitivity, with its reasoning on display. But I also documented its **failure cases** — the 12 false negatives and 48 false positives — because in medical AI those are the most important images to study, and they show exactly where the model would be unreliable. It's a strong research prototype, not a clinical device, and I'm explicit about that. What I took away: defining the *right* error before training mattered more than any architecture choice.
+- **One dataset, one hospital.** No external validation, so there is no evidence the model generalizes to other scanners, sites, or adult patients.
+- **Heatmaps are a sanity check, not proof.** Grad-CAM shows where gradients concentrate, not that the model's reasoning is medically correct.
+- **Threshold and calibration.** The operating point was not calibrated for a real prevalence. Any clinical use would need calibration, threshold selection with clinicians, and prospective validation.
 
-**Stack:** PyTorch · torchvision · pytorch-grad-cam · scikit-learn · Gradio demo
+## What I learned
+
+Choosing the error to minimize before training mattered more than the architecture. Once recall was the goal, imbalance handling, F1-based checkpointing, and reading the failure cases followed naturally.

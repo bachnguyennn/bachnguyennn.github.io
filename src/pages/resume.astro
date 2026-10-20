@@ -1,0 +1,255 @@
+---
+// The full resume as semantic HTML: readable without JavaScript, printable, and built from the
+// same data as the rest of the site. The PDF in public/ is a separate, one-page artifact.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { profile } from '../data/profile';
+import { education, coursework } from '../data/education';
+import { workExperience, leadership } from '../data/experience';
+import { skillGroups } from '../data/skills';
+import { certifications } from '../data/certifications';
+import { thesis, milestones } from '../data/research';
+import { getProjects, displayTitle, hasInternalPage, projectHref } from '../lib/projects';
+import { withBase } from '../lib/urls';
+
+const projects = (await getProjects()).filter((p) => p.id !== 'cascadedvit-research');
+const resumeProjects = projects.filter((p) => p.data.resume).sort((a, b) => a.data.order - b.data.order);
+const otherProjects = projects.filter((p) => !p.data.resume);
+const doneWork = milestones.filter((m) => m.status !== 'planned');
+const pdfHref = withBase(profile.resumePdf);
+const siteHost = profile.site.replace(/^https?:\/\//, '');
+---
+
+<BaseLayout
+  title="Resume"
+  description="Resume of Bach Nguyen: BSc Integrated Mathematics and Computer Science at Ontario Tech University (April 2027), thesis research in continual learning, ML and data engineering projects, and industry experience."
+  type="profile"
+>
+  <div class="container resume-wrap">
+    <div class="resume-toolbar no-print">
+      <p>The complete resume. The <a href={pdfHref}>PDF</a> is a one-page version, last updated {profile.resumePdfUpdated}.</p>
+      <div class="actions">
+        <button class="btn btn-primary btn-sm" type="button" data-print hidden>Print resume</button>
+        <a class="btn btn-secondary btn-sm" href={pdfHref} download="Bach-Nguyen-Resume.pdf">Download PDF</a>
+      </div>
+    </div>
+
+    <article class="resume" aria-labelledby="resume-name">
+      <header class="r-head">
+        <h1 id="resume-name">{profile.name}</h1>
+        <p class="r-tagline">{profile.headline}</p>
+        <ul class="r-contact">
+          <li><a href={`mailto:${profile.email}`}>{profile.email}</a></li>
+          <li><a href={profile.phoneHref}>{profile.phone}</a></li>
+          <li><a href={profile.linkedin} target="_blank" rel="noopener noreferrer">linkedin.com/in/{profile.linkedinHandle}</a></li>
+          <li><a href={profile.github} target="_blank" rel="noopener noreferrer">github.com/{profile.githubHandle}</a></li>
+          <li><a href={profile.site}>{siteHost}</a></li>
+          <li>{profile.location}</li>
+        </ul>
+      </header>
+
+      <section class="r-section" id="summary" aria-labelledby="h-summary">
+        <h2 id="h-summary">Summary</h2>
+        <p>
+          Fourth-year Integrated Mathematics and Computer Science student (graduating {profile.graduation}) doing undergraduate thesis research on
+          continual learning for efficient vision transformers. Builds machine learning, data, and cloud software end to end: a deployed
+          hybrid-retrieval RAG service on Azure, a replay-safe Spark and Delta Lake pipeline, and evaluated models in computer vision,
+          forecasting, and clinical prediction. {profile.availability}
+        </p>
+      </section>
+
+      <section class="r-section" id="education" aria-labelledby="h-education">
+        <h2 id="h-education">Education</h2>
+        <div class="r-item">
+          <div class="r-row">
+            <h3>{education.school}</h3>
+            <span class="r-date">{education.start} – {education.end}</span>
+          </div>
+          <div class="r-row r-sub">
+            <span>{education.degree}</span>
+            <span>{education.location}</span>
+          </div>
+          <ul>
+            <li>Cumulative GPA: {education.gpa} · {education.honours.join(', ')}</li>
+          </ul>
+        </div>
+        <div class="r-courses" id="coursework">
+          <h3 class="r-minor">Relevant coursework</h3>
+          {coursework.map((g) => (
+            <p>
+              <strong>{g.label}:</strong>{' '}
+              {g.courses.map((c, i) => (
+                <>{i > 0 && ', '}<span class:list={{ 'r-key': c.key }}>{c.name}{c.current && ' (in progress)'}</span></>
+              ))}
+            </p>
+          ))}
+        </div>
+      </section>
+
+      <section class="r-section" id="experience" aria-labelledby="h-experience">
+        <h2 id="h-experience">Experience</h2>
+        {workExperience.map((e) => (
+          <div class="r-item" id={`resume-${e.id}`}>
+            <div class="r-row">
+              <h3>{e.role}{e.roleDetail && <span class="r-role-detail">, {e.roleDetail}</span>}</h3>
+              <span class="r-date">{e.date}</span>
+            </div>
+            <div class="r-row r-sub">
+              <span>{e.org}{e.orgDetail && ` · ${e.orgDetail}`}</span>
+              <span>{e.location}</span>
+            </div>
+            <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>
+          </div>
+        ))}
+      </section>
+
+      <section class="r-section" id="research" aria-labelledby="h-research">
+        <h2 id="h-research">Research</h2>
+        <div class="r-item">
+          <div class="r-row">
+            <h3><a href={withBase('/research/')}>{thesis.title}</a></h3>
+            <span class="r-date">{thesis.start} – Present</span>
+          </div>
+          <div class="r-row r-sub">
+            <span>Undergraduate thesis · {thesis.lab} · Supervisor: {thesis.supervisor}</span>
+          </div>
+          <ul>
+            <li>{thesis.question}</li>
+            {doneWork.map((m) => <li>{m.body}</li>)}
+          </ul>
+        </div>
+      </section>
+
+      <section class="r-section" id="projects" aria-labelledby="h-projects">
+        <h2 id="h-projects">Projects</h2>
+        {resumeProjects.map((p) => (
+          <div class="r-item">
+            <div class="r-row">
+              <h3>
+                <a href={projectHref(p)}>{displayTitle(p)}</a>
+                <span class="r-stack"> | {p.data.stack.slice(0, 5).join(', ')}</span>
+              </h3>
+              <span class="r-date">{p.data.year}</span>
+            </div>
+            <ul>{p.data.resume!.map((b) => <li>{b}</li>)}</ul>
+          </div>
+        ))}
+        <h3 class="r-minor">Additional projects</h3>
+        <ul class="r-more">
+          {otherProjects.map((p) => (
+            <li>
+              <a href={projectHref(p)} {...(hasInternalPage(p) ? {} : { target: '_blank', rel: 'noopener noreferrer' })}>{displayTitle(p)}</a>
+              <span class="r-date"> ({p.data.year})</span>: {p.data.summary}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="r-section" id="skills" aria-labelledby="h-skills">
+        <h2 id="h-skills">Technical skills</h2>
+        <dl class="r-skills">
+          {skillGroups.map((g) => (
+            <div><dt>{g.label}</dt><dd>{g.items.join(', ')}</dd></div>
+          ))}
+        </dl>
+      </section>
+
+      <section class="r-section" id="leadership" aria-labelledby="h-leadership">
+        <h2 id="h-leadership">Leadership &amp; community</h2>
+        {leadership.map((e) => (
+          <div class="r-item">
+            <div class="r-row">
+              <h3>{e.role}, <span class="r-role-detail">{e.org}</span></h3>
+              <span class="r-date">{e.date}</span>
+            </div>
+            <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>
+          </div>
+        ))}
+      </section>
+
+      <section class="r-section" id="certifications" aria-labelledby="h-certs">
+        <h2 id="h-certs">Certifications</h2>
+        <ul class="r-plain">
+          {certifications.map((c) => <li>{c.name}</li>)}
+        </ul>
+      </section>
+    </article>
+  </div>
+</BaseLayout>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-print]');
+  if (btn) {
+    btn.hidden = false;
+    btn.addEventListener('click', () => window.print());
+  }
+</script>
+
+<style>
+  .resume-wrap { max-width: 920px; padding-block: var(--s-6) var(--s-8); }
+  .resume-toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3) var(--s-5);
+    margin-bottom: var(--s-5); padding: var(--s-3) var(--s-4); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  }
+  .resume-toolbar p { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+  .resume-toolbar [hidden] { display: none; }
+
+  .resume {
+    padding: clamp(1.25rem, 4vw, 3.25rem); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    box-shadow: var(--shadow); font-size: .9375rem; line-height: 1.55; color: var(--ink-2);
+  }
+  .r-head { text-align: center; padding-bottom: var(--s-5); border-bottom: 2px solid var(--ink); }
+  .r-head h1 { font-family: var(--serif); font-size: clamp(2rem, 1.5rem + 2vw, 2.6rem); font-weight: 500; letter-spacing: -.02em; }
+  .r-tagline { margin: .3rem 0 var(--s-3); color: var(--muted); }
+  .r-contact { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem 1.25rem; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
+  .r-contact a { color: var(--ink-2); }
+
+  .r-section { padding-top: var(--s-5); }
+  .r-section h2 {
+    margin-bottom: var(--s-3); padding-bottom: .3rem; border-bottom: 1px solid var(--line-strong);
+    font: 600 .8rem/1.4 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink);
+  }
+  .r-section > p { margin: 0; }
+  .r-item { margin-bottom: var(--s-4); }
+  .r-item:last-child { margin-bottom: 0; }
+  .r-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0 var(--s-4); }
+  .r-row h3 { font-size: 1rem; font-weight: 600; }
+  .r-row h3 a { color: var(--ink); text-decoration: none; }
+  .r-row h3 a:hover { color: var(--accent-ink); text-decoration: underline; }
+  .r-role-detail, .r-stack { font-weight: 400; color: var(--muted); }
+  .r-stack { font-size: .875rem; }
+  .r-date { font: 400 .8125rem var(--mono); color: var(--muted); white-space: nowrap; }
+  .r-sub { font-style: italic; color: var(--muted); font-size: .9rem; }
+  .resume ul { margin: .35rem 0 0; padding-left: 1.15rem; }
+  .resume li { margin: .2rem 0; }
+  .resume li::marker { color: var(--faint); }
+  .r-minor { margin: var(--s-4) 0 var(--s-2); font-size: .9rem; font-weight: 600; }
+  .r-courses p { margin: 0 0 .35rem; }
+  .r-key { color: var(--ink); }
+  .r-more li { margin: .3rem 0; }
+  .r-skills { margin: 0; display: grid; gap: .3rem; }
+  .r-skills div { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: var(--s-3); }
+  .r-skills dt { font-weight: 600; color: var(--ink); }
+  .r-skills dd { margin: 0; }
+  .r-plain { padding-left: 1.15rem; }
+
+  @media (max-width: 640px) {
+    .r-head { text-align: left; }
+    .r-contact { flex-direction: column; justify-content: flex-start; gap: .15rem; }
+    .r-row { flex-direction: column; gap: .1rem; }
+    .r-skills div { grid-template-columns: minmax(0, 1fr); gap: 0; margin-bottom: .35rem; }
+  }
+
+  @media print {
+    .resume-wrap { max-width: none; padding: 0; }
+    .resume { padding: 0; border: 0; box-shadow: none; font-size: 9.5pt; line-height: 1.4; }
+    .r-head { padding-bottom: 6pt; border-bottom-width: 1.5pt; }
+    .r-head h1 { font-size: 20pt; }
+    .r-contact { font-size: 8.5pt; }
+    .r-section { padding-top: 8pt; }
+    .r-section h2 { margin-bottom: 4pt; font-size: 8.5pt; }
+    .r-item { margin-bottom: 6pt; break-inside: avoid; }
+    .r-row h3 { font-size: 10pt; }
+    .r-date { font-size: 8.5pt; }
+    .r-skills div { grid-template-columns: 11rem 1fr; }
+  }
+</style>

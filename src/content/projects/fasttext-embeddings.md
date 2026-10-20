@@ -1,48 +1,44 @@
 ---
 title: "FastText Subword Embeddings from Scratch"
-summary: "Word embeddings built from scratch to test whether subword n-grams beat Skip-Gram — they win on coverage and morphology."
-role: "Builder"
+shortTitle: "FastText Subword Embeddings"
+summary: "Skip-Gram and FastText word embeddings implemented from scratch in PyTorch, compared under identical settings and benchmarked against official pretrained vectors."
+problem: "Measure what FastText's character n-grams actually add over plain Skip-Gram when everything else is held constant."
+categories: [ml]
+status: complete
+role: "Sole developer"
 period: "2025"
-domain: ml
-domainLabel: "NLP / Representation Learning"
-tags: ["PyTorch", "Word Embeddings", "Skip-Gram", "FastText", "t-SNE"]
-featured: false
-order: 6
-github: "https://github.com/bachnguyennn/Fast-Text-Embedding-System"
-experiment: "fasttext_embeddings"
-domainTag: "nlp"
-headline: "subword n-grams beat skip-gram"
 year: 2025
+order: 8
+stack: ["Python", "PyTorch", "Gensim (baselines)", "scikit-learn", "t-SNE"]
+result:
+  value: "100%"
+  label: "WordSim-353 coverage with subwords"
+  context: "Against 99.4% for Skip-Gram. Analogy accuracy rose from 8.3% to 11.3%; both trail web-scale vectors (~71%)."
+github: "https://github.com/bachnguyennn/Fast-Text-Embedding-System"
+cover: "../../assets/projects/fasttext-embeddings/tsne-skipgram.png"
+coverAlt: "A t-SNE projection of the from-scratch embeddings with related words clustered together."
 ---
 
-> **TL;DR —** Word embeddings built from scratch to test whether FastText's character n-grams beat plain Skip-Gram — they win on coverage and morphology, with an honest accounting of the gap to web-scale pretrained models.
+## Overview
 
-## The question I wanted to answer
+Most people use word embeddings; fewer can explain why they work. I built the full stack myself, with no `gensim.load()`, to answer one question: **does FastText's idea of splitting words into character n-grams help over plain Skip-Gram when both are trained identically?** Then I ran official pretrained models through the same evaluation scripts to see the real gap.
 
-Most people *use* word embeddings; far fewer can explain *why* they work. I wanted to close that gap for myself by building word vectors from absolute scratch — no `gensim.load()` — and answering a concrete question: **does FastText's big idea (breaking words into character n-grams) actually buy you anything over plain Skip-Gram, when both are trained under identical conditions?**
+## Data
 
-And I wanted to benchmark my home-grown models against the real, pretrained ones — and report the gap honestly instead of hiding it.
+**text8**, the first 100 MB of Wikipedia (about 17 million tokens).
 
-## Getting to know the data
+- The vocabulary is Zipfian, so I applied frequency subsampling to stop the model spending its capacity on "the" and "of".
+- Splitting words into 3–6 character n-grams with `<` and `>` boundary markers produced **333,000 unique n-grams**, against a 71,000-word vocabulary. That is the cost of subwords.
 
-I trained on **text8** — the first 100MB of Wikipedia, about 17 million tokens. Exploring it shaped two design choices:
+## Approach
 
-- The vocabulary is **Zipfian** — a handful of words appear constantly, a huge tail appears a few times. I applied frequency subsampling so the model doesn't waste all its capacity on "the" and "of."
-- Once I split words into character n-grams (3–6 chars, with `<` `>` boundary markers), the subword vocabulary exploded to **333,000 unique n-grams** — far bigger than the 71k word vocab. That's the cost of subwords, and it had to be worth paying.
+I implemented tokenizer → subword hashing → **Skip-Gram with negative sampling** → training on Apple MPS → `.vec` export → the same evaluation scripts used for the baselines.
 
-## How I thought about it
-
-I implemented the full stack myself so I could trace a single token end-to-end: tokenizer → subword hashing → **Skip-Gram with negative sampling** → training on Apple MPS → `.vec` export → the *same* evaluation scripts I'd run on the baselines.
-
-The key experiment was a controlled A/B: **Skip-Gram vs FastText on identical settings** (300d, 10 epochs, same corpus). One detail I was careful about: FastText wraps each word in boundary markers (`where` → `<where>`) so that prefix/suffix n-grams are distinct from interior ones — without that, the substring `her` inside `where` would collide with `there`, `other`, and create cross-word noise.
-
-Both models trained cleanly to convergence:
+The key experiment was a controlled comparison: **Skip-Gram against FastText with identical settings** (300 dimensions, 10 epochs, same corpus). The boundary markers matter: without them, the `her` inside `where` would share a vector with `her` in `there` and `other`.
 
 ![Training loss curves for Skip-Gram and FastText](../../assets/projects/fasttext-embeddings/training-loss.png)
 
-## What I found
-
-Benchmarked on WordSim-353 and the Google analogy task, against official pretrained vectors:
+## Results
 
 | Model | WordSim ρ | Analogy | Coverage |
 |---|---:|---:|---:|
@@ -51,18 +47,14 @@ Benchmarked on WordSim-353 and the Google analogy task, against official pretrai
 | FastText (official) | 0.70 | 71.3% | 100% |
 | GloVe 300d | 0.61 | 71.7% | 100% |
 
-The honest gap is the analogy score: ~11% vs ~71%. But that gap is about **data scale** (text8 is tiny vs web-scale corpora), *not* a bug — proven by running official models through my exact scripts.
+The analogy gap to official vectors (~11% against ~71%) comes from **data scale**: text8 is tiny next to web-scale corpora. Running the official models through my scripts rules out an evaluation bug.
 
-The more interesting finding is **where subwords actually helped.** Not on every metric — but on **coverage** (100% of test pairs get a vector) and **morphology**. FastText's nearest neighbours cluster word *forms* together because character n-grams capture shared stems and affixes:
+Subwords did not win everywhere. They helped on **coverage** (every test pair gets a vector) and **morphology**: FastText's nearest neighbours group word forms that share stems and affixes.
 
-![Nearest-neighbour cosine similarity: Skip-Gram vs FastText](../../assets/projects/fasttext-embeddings/neighbors.png)
-
-Projecting the learned vectors with t-SNE shows real lexical structure emerging from scratch:
+![Nearest-neighbour similarity: Skip-Gram against FastText](../../assets/projects/fasttext-embeddings/neighbors.png)
 
 ![t-SNE projection of the from-scratch Skip-Gram embeddings](../../assets/projects/fasttext-embeddings/tsne-skipgram.png)
 
-## Takeaways
+## What I learned
 
-Subwords didn't beat Skip-Gram on every scalar — they paid off specifically in **coverage and morphology**, exactly where the theory says they should. The portfolio claim here isn't a leaderboard number; it's that I can implement the paper correctly, design a controlled experiment, and interpret the result — including being clear that the gap to pretrained models is a data-budget story, not an implementation one.
-
-**Stack:** PyTorch (Apple MPS) · Gensim (baselines only) · scikit-learn · t-SNE
+Implementing a paper and designing a controlled experiment around it taught me more than a leaderboard number would have. Subwords paid off exactly where the theory says they should, and the gap to pretrained models is a data-budget story, not an implementation one.
