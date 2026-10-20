@@ -24,8 +24,6 @@ resume:
   - "Deployed with Docker on Azure Container Apps, using Container Apps secrets for the LLM key and a managed identity for Cosmos DB access."
 ---
 
-import AskBachDiagram from '../../components/diagrams/AskBachDiagram.astro';
-
 ## Overview
 
 Ask Bach is the chat button in the corner of this site. It answers questions about my education, experience, research, and projects using only a set of documents I wrote for it. I built every layer myself: ingestion, chunking, dense and lexical retrieval, rank fusion, structured generation, source validation, evaluation, the HTTP API, the container, and the Azure deployment.
@@ -36,7 +34,13 @@ A portfolio is a fixed set of pages, but visitors usually arrive with one specif
 
 ## System architecture
 
-<AskBachDiagram />
+```text
+question
+  → BM25 keyword search (top 10) + MiniLM vectors in Cosmos DB (top 10)
+  → Reciprocal Rank Fusion (k = 60) → top 3 chunks
+  → Groq LLM, strict JSON: {answer, used_context: [1, 2]}
+  → resolve_sources() in Python → {answer, sources: [(document, chunk_id)]}
+```
 
 1. **Knowledge base.** Hand-written plain-text documents stored in **Azure Cosmos DB for NoSQL**. Each is split into paragraph-based chunks, and the document title is prefixed to every chunk so a chunk from the middle of a file still says what it is about.
 2. **Dense retrieval.** `all-MiniLM-L6-v2` embeds chunks and questions as 384-dimensional vectors. Cosmos DB's vector search returns the nearest chunks by cosine similarity, using a `flat` (exact) index.

@@ -21,18 +21,12 @@ demo:
   url: "https://market-guard-coinbase.streamlit.app/"
   label: "Dashboard"
   note: "Shows published snapshots or a labeled synthetic demo, not a live feed."
-cover: "../../assets/projects/market-guard/market-overview.png"
-coverAlt: "MarketGuard Streamlit dashboard showing one-minute BTC and ETH volume with a flagged volume spike, from the local demo run."
 resume:
   - "Built a collector that streams Coinbase trades into an Azure Blob Bronze archive, deployed to Azure Container Apps through GitHub Actions with OIDC sign-in."
   - "Cleaned trades into a Silver Delta table with an insert-only MERGE keyed on (product, trade_id), so replays and restarts never double-count; verified 100 → 100 → 100 rows across replay and restart."
   - "Aggregated one-minute Gold metrics (volume, notional, VWAP) with Decimal arithmetic and flagged volume spikes and price jumps with gap-aware rolling z-scores."
   - "Covered the pipeline with 40 focused tests, worker crash-recovery tests, and a real Kafka-to-dashboard integration test."
 ---
-
-import MarketGuardDiagram from '../../components/diagrams/MarketGuardDiagram.astro';
-import { Image } from 'astro:assets';
-import alerts from '../../assets/projects/market-guard/anomaly-alerts.png';
 
 ## Overview
 
@@ -49,7 +43,16 @@ The public dashboard reads the latest published snapshot. Without Azure credenti
 
 ## System architecture
 
-<MarketGuardDiagram />
+```text
+Cloud path (deployed collector, manual refresh)
+Coinbase WebSocket → collector (Azure Container Apps) → Azure Blob Bronze (JSONL)
+  → manual GitHub Actions run → Silver → Gold → anomalies
+  → Parquet + SHA-256 manifest → Streamlit dashboard
+
+Streaming path (local Docker and CI, not hosted)
+test trades → Kafka (2 partitions) → Spark Structured Streaming
+  → Silver Delta (insert-only MERGE) → Gold 1-min metrics → anomaly detectors
+```
 
 - **Bronze.** Raw JSONL batches in a private Blob container. Immutable; everything downstream can be rebuilt from it.
 - **Silver.** Spark validates and casts every trade (`Decimal(20,8)` price and size, typed timestamps, positive values) and drops malformed records. Writes are an **insert-only MERGE** keyed on `(product_id, trade_id)`.
@@ -65,7 +68,7 @@ All detectors use Spark window functions partitioned by product and by **gap-awa
 
 Alerts are statistical flags for someone to look at. They are not evidence of fraud or manipulation, and the dashboard says so.
 
-<Image src={alerts} alt="MarketGuard alerts table listing a BTC volume spike and an ETH price jump, from the local demo run with synthetic trades." widths={[640, 960, 1280]} sizes="(min-width: 960px) 720px, 100vw" />
+![MarketGuard alerts table listing a BTC volume spike and an ETH price jump, from the local demo run with synthetic trades](../../assets/projects/market-guard/anomaly-alerts.png)
 
 *Alerts view from the local demo, which uses deterministic synthetic trades seeded with one BTC volume spike and one ETH price jump.*
 

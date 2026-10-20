@@ -4,17 +4,6 @@ import { withBase } from '../lib/urls';
 ---
 
 <BaseLayout title="Page not found" description="This page does not exist on Bach Nguyen's site.">
-  <header class="page-header">
-    <div class="container">
-      <p class="eyebrow">404</p>
-      <h1>Page not found</h1>
-      <p class="lede">The link may be out of date. Here are the main pages instead.</p>
-      <div class="actions">
-        <a class="btn btn-primary" href={withBase('/')}>Home</a>
-        <a class="btn btn-secondary" href={withBase('/projects/')}>Projects</a>
-        <a class="btn btn-secondary" href={withBase('/research/')}>Research</a>
-        <a class="btn btn-secondary" href={withBase('/resume/')}>Resume</a>
-      </div>
-    </div>
-  </header>
+  <h1 class="page-title">Page not found</h1>
+  <p class="muted">The link may be out of date. Try the <a href={withBase('/')}>home page</a>, <a href={withBase('/projects/')}>projects</a>, <a href={withBase('/research/')}>research</a>, or <a href={withBase('/resume/')}>resume</a>.</p>
 </BaseLayout>

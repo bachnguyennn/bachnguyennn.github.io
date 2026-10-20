@@ -16,8 +16,6 @@ result:
   label: "best mean angular error"
   context: "A random guess on the sphere averages about 90°. The classical triangle-hash solver succeeds."
 github: "https://github.com/bachnguyennn/astro-ml"
-cover: "../../assets/projects/astrolok/fov-grid.png"
-coverAlt: "A grid of synthetic star fields rendered at different fields of view."
 ---
 
 ## Overview

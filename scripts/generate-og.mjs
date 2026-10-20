@@ -10,31 +10,23 @@ const photoSrc = `data:image/jpeg;base64,${photo.toString('base64')}`;
 
 const html = `<!doctype html>
 <html><head><meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Newsreader:opsz,wght@6..72,500&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=block">
 <style>
   * { box-sizing: border-box; margin: 0; }
-  body { width: 1200px; height: 630px; background: #f6f5f1; font-family: Inter, sans-serif; color: #12161f;
-    display: grid; grid-template-columns: 1fr 360px; gap: 64px; padding: 72px 80px; position: relative;
-    background-image: repeating-linear-gradient(to right, rgba(196,192,181,.35) 0 1px, transparent 1px 96px); }
-  .copy { display: flex; flex-direction: column; justify-content: center; }
-  .eyebrow { font: 500 20px ui-monospace, Menlo, monospace; letter-spacing: .08em; text-transform: uppercase; color: #626a7b; }
-  h1 { margin-top: 18px; font: 500 96px/1 Newsreader, Georgia, serif; letter-spacing: -.03em; }
-  .role { margin-top: 22px; font: italic 500 34px/1.25 Newsreader, Georgia, serif; color: #2b3240; }
-  .tags { display: flex; gap: 12px; margin-top: 40px; flex-wrap: wrap; }
-  .tags span { padding: 8px 14px; border: 1px solid #c4c0b5; border-radius: 6px; background: #fff; font: 400 20px ui-monospace, Menlo, monospace; color: #4f5767; }
-  .photo { align-self: center; height: 450px; border-radius: 24px; overflow: hidden; border: 1px solid #e2dfd7; }
-  .photo img { width: 100%; height: 100%; object-fit: cover; }
-  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 10px; background: #2b54c4; }
+  body { width: 1200px; height: 630px; background: #fafaf9; color: #18181b; font-family: Inter, sans-serif;
+    display: flex; align-items: center; gap: 56px; padding: 0 96px; }
+  img { width: 220px; height: 220px; border-radius: 50%; object-fit: cover; flex: none; }
+  h1 { font-size: 76px; font-weight: 700; letter-spacing: -.02em; }
+  p { margin-top: 18px; font-size: 26px; color: #52525b; line-height: 1.35; }
+  .site { margin-top: 30px; font-size: 24px; color: #2f5a9e; }
 </style></head>
 <body>
-  <div class="copy">
-    <p class="eyebrow">Ontario Tech University · Class of 2027</p>
+  <img src="${photoSrc}" alt="">
+  <div>
     <h1>Bach Nguyen</h1>
-    <p class="role">Machine Learning, Applied AI &amp; Software Engineering</p>
-    <div class="tags"><span>Continual learning</span><span>RAG on Azure</span><span>Spark · Delta Lake</span></div>
+    <p>Machine learning, applied AI &amp; software engineering<br>Mathematics &amp; Computer Science, Ontario Tech University</p>
+    <p class="site">bachnguyennn.github.io</p>
   </div>
-  <div class="photo"><img src="${photoSrc}" alt=""></div>
-  <div class="bar"></div>
 </body></html>`;
 
 const browser = await chromium.launch();

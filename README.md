@@ -24,21 +24,20 @@ First Playwright run: `npx playwright install chromium`.
 
 ## Where content lives
 
-Edit facts in one place; every page, card and the HTML resume read from these files.
+Edit facts in one place; every page and the HTML resume read from these files.
 
 | What | File |
 |---|---|
 | Name, email, links, headline, availability | `src/data/profile.ts` |
 | Roles (work, research, teaching, leadership) | `src/data/experience.ts` (validated with Zod at build time) |
 | Degree, GPA, honours, coursework | `src/data/education.ts` |
-| Skills and the homepage "expertise" cards | `src/data/skills.ts` |
+| Skills (resume) | `src/data/skills.ts`; homepage tool chips are in `src/pages/index.astro` |
 | Thesis summary, milestones, references | `src/data/research.ts` |
 | Certifications | `src/data/certifications.ts` |
-| Projects (card data + case study) | `src/content/projects/<slug>.md(x)`; schema in `src/content.config.ts` |
+| Projects (list entry + write-up) | `src/content/projects/<slug>.md`; schema in `src/content.config.ts` |
 
-A project's frontmatter drives its card, filters, status badge, key result and resume bullets (`resume:`);
-the Markdown body is the case study at `/projects/<slug>/`. Use `.mdx` when a case study embeds a diagram
-component from `src/components/diagrams/`.
+A project's frontmatter drives its list entry, status, key result and resume bullets (`resume:`);
+the Markdown body is the write-up at `/projects/<slug>/`. Projects with `featured: true` appear on the homepage.
 
 **The PDF resume (`public/Resume.pdf`) is a separate file.** Editing the data above does not change it.
 Regenerate it separately (it was exported from a browser) and update `resumePdfUpdated` in `profile.ts`.

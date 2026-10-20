@@ -15,8 +15,6 @@ result:
   label: "MAPE, XGBoost, one hour ahead"
   context: "Mean over 3 walk-forward folds of 30 days each, PJM AEP hourly load."
 github: "https://github.com/bachnguyennn/Energy-Demand-Prediction"
-cover: "../../assets/projects/energy-demand-forecasting/predictions.png"
-coverAlt: "A week of actual hourly electricity load overlaid with XGBoost and LSTM predictions, which track it closely."
 resume:
   - "Compared Prophet, XGBoost, an LSTM, and a Temporal Fusion Transformer for hourly load forecasting with 3-fold walk-forward validation on PJM data."
   - "Engineered lag (1 h, 24 h, 168 h), rolling, cyclical-time, and holiday features; XGBoost reached 0.81% MAPE one hour ahead, and SHAP confirmed the short lags dominate."

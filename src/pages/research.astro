@@ -1,11 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ContinualLearningDiagram from '../components/diagrams/ContinualLearningDiagram.astro';
 import { thesis, milestones, references } from '../data/research';
 import { withBase } from '../lib/urls';
 
-const statusLabel = { done: 'Completed', 'in-progress': 'In progress', planned: 'Planned' } as const;
-const cvit = references[0].url;
+const statusLabel = { done: 'Done', 'in-progress': 'In progress', planned: 'Next' } as const;
+const [cvit, cpg, sema] = references;
 ---
 
 <BaseLayout
@@ -13,164 +12,44 @@ const cvit = references[0].url;
   description="Undergraduate thesis research by Bach Nguyen on continual learning for CascadedViT, an efficient vision transformer, in the Visual Computing Lab at Ontario Tech University."
   type="article"
 >
-  <header class="page-header">
-    <div class="container">
-      <p class="eyebrow">Undergraduate thesis · {thesis.status}</p>
-      <h1>{thesis.title}</h1>
-      <p class="lede">{thesis.summary}</p>
-      <dl class="thesis-meta">
-        <div><dt>Lab</dt><dd>{thesis.lab}</dd></div>
-        <div><dt>Supervisor</dt><dd>{thesis.supervisor}</dd></div>
-        <div><dt>Started</dt><dd>{thesis.start}</dd></div>
-      </dl>
-    </div>
-  </header>
-
-  <div class="container research-layout">
-    <article class="prose">
-      <p class="note">
-        <strong>What this page covers.</strong> The background, the question, and the work I can describe publicly. Results are not
-        public yet; I will add them here when they are. Published results quoted below belong to their authors and are cited.
-      </p>
-
-      <h2 id="question">The research question</h2>
-      <p class="question">{thesis.question}</p>
-
-      <h2 id="forgetting">Background: catastrophic forgetting</h2>
-      <p>
-        Train a network on one task, then fine-tune it on a second, and its accuracy on the first usually collapses. The gradients for
-        the new task overwrite the weights that encoded the old one. This is <strong>catastrophic forgetting</strong>.
-      </p>
-      <p>
-        The simple fix is to retrain on all the data every time something new arrives. That means storing every past example and paying
-        for a full training run on each update, which fails when data arrives over time, cannot be kept for privacy or storage reasons,
-        or the model runs on a small device. <strong>Continual learning</strong> looks for ways to learn a sequence of tasks while keeping
-        what the model already knows. The central tension is <em>stability</em> (do not forget) against <em>plasticity</em> (still learn
-        new things).
-      </p>
-      <ContinualLearningDiagram variant="setting" />
-
-      <h2 id="why-efficient">Why efficient vision transformers</h2>
-      <p>
-        <a href={cvit} target="_blank" rel="noopener noreferrer">CascadedViT</a> (CViT), by Srivathsan Sivakumar and Faisal Qureshi, is a
-        vision transformer designed for hardware with tight compute and battery budgets. Its Cascaded-Chunk Feed-Forward Network splits
-        features into chunks to cut parameters and FLOPs. The authors report that CViT-XL reaches 75.5% top-1 accuracy on ImageNet-1K with
-        15% fewer FLOPs and 3.3% less energy than EfficientViT-M5.
-      </p>
-      <p>
-        The phones and drones CViT is designed for are also where continual learning matters most: a deployed model should pick up new
-        classes on the device, where retraining from scratch or storing all past data is not realistic. Yet most continual learning
-        research uses large backbones, and a compact model has far less spare capacity to divide between tasks. Every common way of
-        protecting old knowledge costs something, whether extra parameters, extra compute, or stored data, and for an efficient model
-        those costs matter as much as accuracy.
-      </p>
-
-      <h2 id="methods">Methods I am working with</h2>
-      <h3>CPG: Compacting, Picking and Growing</h3>
-      <p>
-        <a href={references[1].url} target="_blank" rel="noopener noreferrer">CPG</a> (Hung et al., NeurIPS 2019) avoids forgetting by
-        construction rather than by regularization. After each task, the weights it used are pruned and the survivors are frozen and owned
-        by that task. Later tasks train only free weights, can reuse frozen ones read-only through a learned mask, and add capacity only if
-        the free pool runs out. CPG was designed for convolutional networks, so part of the work is adapting it to a hybrid transformer.
-      </p>
-      <ContinualLearningDiagram variant="cpg" />
-      <h3>SEMA: mixture of adapters with expert routing</h3>
-      <p>
-        <a href={references[2].url} target="_blank" rel="noopener noreferrer">SEMA</a> (Wang et al.) takes a different route for
-        pre-trained models: small adapter modules act as experts, a router decides which experts handle an input, and new adapters are added
-        only when the data distribution shifts enough to need them. The routing mechanism is the part I am working on.
-      </p>
-
-      <h2 id="contributions">Progress and my contributions</h2>
-      <ol class="milestones">
-        {milestones.map((m) => (
-          <li class={`ms ms-${m.status}`}>
-            <span class="ms-status">{statusLabel[m.status]}</span>
-            <div>
-              <strong>{m.title}</strong>
-              <p>{m.body}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-      <p>
-        The CascadedViT architecture and the CPG and SEMA methods are the work of their authors. My contribution is implementing and
-        adapting them for CascadedViT, running the experiments, and analysing the trade-offs, together with my supervisor and a CascadedViT
-        co-author.
-      </p>
-
-      <h2 id="challenges">Open challenges</h2>
-      <ul>
-        <li><strong>Capacity.</strong> Methods that freeze or add weights assume room to spare; an efficient model starts with little.</li>
-        <li><strong>Architecture fit.</strong> CascadedViT’s chunked feed-forward layers and attention differ from the convolutional and plain-ViT backbones these methods were designed for.</li>
-        <li><strong>Measuring cost honestly.</strong> Accuracy alone is not enough; parameters, FLOPs, and stored state per task have to be reported alongside it.</li>
-      </ul>
-
-      <h2 id="related">Related projects</h2>
-      <p>
-        Before the thesis I explored multi-timescale memory in <a href={withBase('/projects/nested-learning/')}>Nested Learning</a>,
-        another approach to learning continually without overwriting old knowledge.
-      </p>
-
-      <h2 id="references">References</h2>
-      <ol class="refs">
-        {references.map((r) => (
-          <li>
-            {r.authors}. <a href={r.url} target="_blank" rel="noopener noreferrer">{r.title}</a>. <span class="ref-venue">{r.venue}</span>.
-          </li>
-        ))}
-      </ol>
-    </article>
-
-    <aside class="research-aside" aria-label="Sections">
-      <nav class="toc">
-        <p class="toc-title">On this page</p>
-        <ol>
-          <li><a href="#question">Research question</a></li>
-          <li><a href="#forgetting">Catastrophic forgetting</a></li>
-          <li><a href="#why-efficient">Efficient vision transformers</a></li>
-          <li><a href="#methods">Methods</a></li>
-          <li><a href="#contributions">Progress</a></li>
-          <li><a href="#challenges">Open challenges</a></li>
-          <li><a href="#references">References</a></li>
-        </ol>
-      </nav>
-    </aside>
+  <p class="article-meta">Undergraduate thesis · {thesis.lab} · {thesis.start} – present</p>
+  <h1 class="page-title">Continual Learning for CascadedViT</h1>
+  <p class="lead muted">{thesis.summary} Supervised by {thesis.supervisor}.</p>
+  <div class="article-links">
+    <a href={cvit.url} target="_blank" rel="noopener">CascadedViT paper (arXiv) →</a>
   </div>
+
+  <article class="prose">
+    <h2>The problem: catastrophic forgetting</h2>
+    <p>Train a network on one task, then fine-tune it on a second, and its accuracy on the first usually collapses. The gradients for the new task overwrite the weights that encoded the old one. This is <strong>catastrophic forgetting</strong>.</p>
+    <p>The simple fix is to retrain on all the data every time something new arrives. That means storing every past example and paying for a full training run on each update, which doesn't work when data arrives over time, can't be kept, or the model lives on a small device. Continual learning looks for ways to learn a sequence of tasks while keeping what the model already knows. The core tension is <em>stability</em> (don't forget) against <em>plasticity</em> (still learn new things).</p>
+
+    <h2>Why CascadedViT</h2>
+    <p><a href={cvit.url} target="_blank" rel="noopener">CascadedViT (CViT)</a>, by Srivathsan Sivakumar and Faisal Qureshi, is a vision transformer built for compute- and battery-constrained hardware. Its Cascaded-Chunk Feed-Forward Network (CCFFN) splits features into chunks to cut parameters and FLOPs. In the paper, CViT-XL reaches 75.5% top-1 on ImageNet-1K with 15% fewer FLOPs and 3.3% less energy than EfficientViT-M5.</p>
+    <p>The phones and drones CViT is designed for are also where continual learning matters most. A deployed model should pick up new classes on the device, where retraining from scratch or storing all past data isn't realistic. But most continual learning work has been done on larger backbones, and a compact model has less spare capacity to share between tasks.</p>
+
+    <h2>What I'm working on</h2>
+    <p>My thesis asks: <strong>{thesis.question.charAt(0).toLowerCase() + thesis.question.slice(1)}</strong></p>
+    <p>Keeping old knowledge usually costs something, whether that's extra parameters, extra compute, or stored data. For a model whose whole point is efficiency, those costs matter as much as accuracy. I'm working with two published methods:</p>
+    <ul>
+      <li><strong><a href={cpg.url} target="_blank" rel="noopener">CPG</a></strong> (Compacting, Picking and Growing; Hung et al., NeurIPS 2019) avoids forgetting by construction. After each task, the weights it used are pruned and the survivors are frozen. Later tasks train only free weights, can reuse frozen ones through a learned mask, and add capacity only when the free pool runs out. It was designed for convolutional networks, so part of the work is adapting it to a hybrid transformer.</li>
+      <li><strong><a href={sema.url} target="_blank" rel="noopener">SEMA</a></strong> (Wang et al.) adds small adapter modules as experts to a pre-trained model, uses a router to decide which experts handle an input, and adds new adapters only when the data distribution shifts. I'm working on the routing mechanism.</li>
+    </ul>
+
+    <h2>Progress</h2>
+    <ul>
+      {milestones.map((m) => (
+        <li><strong>{statusLabel[m.status]}: {m.title}.</strong> {m.body}</li>
+      ))}
+    </ul>
+    <p>CascadedViT, CPG and SEMA are the work of their authors. My part is implementing and adapting them for CascadedViT and running the experiments, with my supervisor and a CascadedViT co-author.</p>
+    <p>This work is ongoing, and I'll share results here once they're ready to be made public. Before the thesis, I explored a related idea in my <a href={withBase('/projects/nested-learning/')}>Nested Learning</a> project.</p>
+
+    <h2>References</h2>
+    <ol>
+      {references.map((r) => (
+        <li>{r.authors}. <a href={r.url} target="_blank" rel="noopener">{r.title}</a>. {r.venue}.</li>
+      ))}
+    </ol>
+  </article>
 </BaseLayout>
-
-<style>
-  .thesis-meta { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-6); margin: var(--s-5) 0 0; }
-  .thesis-meta dt { font: 500 var(--fs-xs)/1.4 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
-  .thesis-meta dd { margin: .15rem 0 0; color: var(--ink-2); }
-
-  .research-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: var(--s-8); padding-block: var(--s-7) var(--s-8); align-items: start; }
-  .research-aside { position: sticky; top: calc(var(--header-h) + var(--s-5)); }
-  .toc-title { margin: 0 0 var(--s-2); font: 500 var(--fs-xs)/1.4 var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--faint); }
-  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
-  .toc a { display: block; padding: .3rem 0 .3rem var(--s-4); margin-left: -1px; border-left: 1px solid transparent; color: var(--muted); font-size: .875rem; text-decoration: none; }
-  .toc a:hover { color: var(--ink); border-left-color: var(--accent); }
-
-  .note { padding: var(--s-4); border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); font-size: .9375rem; }
-  .question { font-family: var(--serif); font-size: 1.35rem; line-height: 1.45; color: var(--ink); padding-left: var(--s-4); border-left: 2px solid var(--accent); }
-
-  .milestones { list-style: none; padding: 0 !important; display: grid; gap: var(--s-3); }
-  .ms { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: var(--s-4); padding: var(--s-4) !important; margin: 0 !important; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); }
-  .ms p { margin: .3rem 0 0; font-size: .9375rem; }
-  .ms-status { font: 500 var(--fs-xs)/1.8 var(--mono); text-transform: uppercase; letter-spacing: .06em; }
-  .ms-done .ms-status { color: var(--ok); }
-  .ms-in-progress .ms-status { color: var(--violet); }
-  .ms-planned .ms-status { color: var(--faint); }
-
-  .refs { font-size: .9375rem; }
-  .refs li { margin: .6rem 0; }
-  .ref-venue { color: var(--faint); }
-
-  @media (max-width: 1000px) {
-    .research-layout { grid-template-columns: minmax(0, 1fr); }
-    .research-aside { display: none; }
-  }
-  @media (max-width: 560px) {
-    .ms { grid-template-columns: minmax(0, 1fr); gap: var(--s-1); }
-  }
-</style>

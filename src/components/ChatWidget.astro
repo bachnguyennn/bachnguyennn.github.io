@@ -1,11 +1,9 @@
 ---
-// "Ask Bach" chat panel for the FastAPI RAG backend (POST /ask → { answer, sources }).
+// Floating "Chat with me" widget that talks to the FastAPI RAG backend (POST /ask → { answer, sources }).
 // Defaults to the deployed Azure Container App; set PUBLIC_CHAT_API_URL to override
 // (e.g. PUBLIC_CHAT_API_URL=http://127.0.0.1:8000 for a local uvicorn).
-// The rest of the site never depends on this: if the API is down, the panel says so and
-// offers email and LinkedIn instead.
+// If the API is down or slow, the widget says so and points to email; the rest of the site never depends on it.
 import { profile } from '../data/profile';
-import { withBase } from '../lib/urls';
 
 const apiUrl = (
   import.meta.env.PUBLIC_CHAT_API_URL ?? 'https://ask-bach-api.yellowbush-fb5a973b.canadacentral.azurecontainerapps.io'
@@ -15,96 +13,55 @@ const starters = [
   'What projects has Bach built?',
   'What is Bach researching?',
   'How has Bach used Azure?',
-  'Tell me about MarketGuard.',
   'How can I contact Bach?',
 ];
-
-// Knowledge-base documents that have a matching page on this site. Unknown documents are
-// listed by name only; no link is invented for them.
-const sourcePages: Record<string, { label: string; href: string }> = {
-  'about.txt': { label: 'Profile', href: withBase('/') },
-  'cmha.txt': { label: 'CMHA internship', href: withBase('/experience/#cmha-experience') },
-  'education.txt': { label: 'Education', href: withBase('/resume/#education') },
-  'azure.txt': { label: 'Azure & cloud work', href: withBase('/experience/#swb-experience') },
-  'research.txt': { label: 'Thesis research', href: withBase('/research/') },
-  'projects.txt': { label: 'Projects overview', href: withBase('/projects/') },
-  'ask_bach.txt': { label: 'Ask Bach', href: withBase('/projects/ask-bach/') },
-  'project_market_guard.txt': { label: 'MarketGuard', href: withBase('/projects/market-guard/') },
-  'project_chest_xray.txt': { label: 'Chest X-ray project', href: withBase('/projects/chest-xray-pneumonia/') },
-  'project_energy_forecasting.txt': { label: 'Load forecasting', href: withBase('/projects/energy-demand-forecasting/') },
-  'project_hospital_readmission.txt': { label: 'Readmission model', href: withBase('/projects/hospital-readmission/') },
-  'project_xg_betting.txt': { label: 'xG betting backtest', href: withBase('/projects/expected-goals/') },
-  'project_astroloc.txt': { label: 'AstroLoc-ML', href: withBase('/projects/astrolok/') },
-  'project_fasttext.txt': { label: 'FastText embeddings', href: withBase('/projects/fasttext-embeddings/') },
-  'project_nested_learning.txt': { label: 'Nested Learning', href: withBase('/projects/nested-learning/') },
-};
 ---
 
-<div class="chat" data-api={apiUrl} data-sources={JSON.stringify(sourcePages)} data-email={profile.email} data-linkedin={profile.linkedin}>
-  <section class="chat-panel" id="chat-panel" role="dialog" aria-modal="false" aria-labelledby="chat-title" aria-describedby="chat-disclosure" hidden>
-    <header class="chat-head">
+<div class="chat" data-api={apiUrl} data-email={profile.email}>
+  <div class="chat-panel" id="chat-panel" role="dialog" aria-label="Chat with Bach" hidden>
+    <div class="chat-head">
       <div>
-        <h2 id="chat-title">Ask Bach <span class="chat-ai">AI assistant</span></h2>
-        <p id="chat-disclosure">Answers come from documents Bach wrote about his work. It is a bot, not Bach, and it can be wrong.</p>
+        <strong>Ask Bach</strong>
+        <span>An AI assistant, not Bach. Answers come from his notes and can be wrong.</span>
       </div>
-      <button class="chat-close" type="button" aria-label="Close chat">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
-      </button>
-    </header>
-
-    <div class="chat-scroll">
-      <ol class="chat-log" role="log" aria-live="polite" aria-label="Conversation">
-        <li class="msg bot">
-          <p>Hi! Ask me about Bach’s projects, research, experience, or skills. For anything important, it’s best to <a href={`mailto:${profile.email}`}>email Bach</a> directly.</p>
-        </li>
-      </ol>
-      <div class="chat-starters" aria-label="Suggested questions">
-        {starters.map((q) => <button type="button" class="starter" data-q={q}>{q}</button>)}
-      </div>
+      <button class="chat-close" type="button" aria-label="Close chat">&times;</button>
     </div>
 
+    <ol class="chat-log" aria-live="polite">
+      <li class="msg bot">Hi! I'm a bot trained on Bach's resume and projects. Ask me anything.</li>
+      <li class="chat-starters">
+        {starters.map((q) => <button type="button" data-q={q}>{q}</button>)}
+      </li>
+    </ol>
+
     <form class="chat-form">
-      <label for="chat-input" class="visually-hidden">Your question</label>
-      <input id="chat-input" name="q" type="text" placeholder="Ask a question…" autocomplete="off" enterkeyhint="send" maxlength="500" required />
-      <button type="submit" class="chat-send" aria-label="Send question">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" stroke="none" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" /></svg>
+      <input name="q" type="text" placeholder="Ask a question…" autocomplete="off" aria-label="Your question" maxlength="500" required />
+      <button type="submit" aria-label="Send">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" /></svg>
       </button>
     </form>
-    <p class="chat-foot">Prefer a person? <a href={`mailto:${profile.email}`}>Email</a> · <a href={profile.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a></p>
-  </section>
+    <p class="chat-foot">Prefer a person? <a href={`mailto:${profile.email}`}>Email Bach</a></p>
+  </div>
 
-  <button class="chat-toggle" type="button" aria-expanded="false" aria-controls="chat-panel">
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path d="M21 12a8 8 0 0 1-11.7 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z" />
-      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke-width="2.6" />
+  <button class="chat-toggle" type="button" aria-label="Chat with me" aria-expanded="false" aria-controls="chat-panel">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2z" />
     </svg>
-    <span class="chat-toggle-label">Ask Bach <span class="chat-toggle-ai">AI</span></span>
+    <span>Chat with me</span>
   </button>
 </div>
 
 <script>
   type Source = { source: string; chunk_id: number };
-  type SourcePage = { label: string; href: string };
-
-  const REQUEST_TIMEOUT_MS = 45000; // a cold container can take a while to load the embedding model
-  const SLOW_NOTICE_MS = 8000;
+  const TIMEOUT_MS = 45000; // a cold container can take a while to load the embedding model
 
   const root = document.querySelector<HTMLElement>('.chat');
   if (root) {
     const api = root.dataset.api!;
     const email = root.dataset.email!;
-    const linkedin = root.dataset.linkedin!;
-    let sourcePages: Record<string, SourcePage> = {};
-    try {
-      sourcePages = JSON.parse(root.dataset.sources ?? '{}');
-    } catch {
-      sourcePages = {};
-    }
-
     const panel = root.querySelector<HTMLElement>('.chat-panel')!;
     const toggle = root.querySelector<HTMLButtonElement>('.chat-toggle')!;
-    const closeBtn = root.querySelector<HTMLButtonElement>('.chat-close')!;
-    const scroller = root.querySelector<HTMLElement>('.chat-scroll')!;
+    const close = root.querySelector<HTMLButtonElement>('.chat-close')!;
     const log = root.querySelector<HTMLOListElement>('.chat-log')!;
     const starters = root.querySelector<HTMLElement>('.chat-starters')!;
     const form = root.querySelector<HTMLFormElement>('.chat-form')!;
@@ -115,132 +72,41 @@ const sourcePages: Record<string, { label: string; href: string }> = {
     const setOpen = (open: boolean) => {
       panel.hidden = !open;
       toggle.setAttribute('aria-expanded', String(open));
-      root.classList.toggle('is-open', open);
-      document.documentElement.classList.toggle('chat-open', open);
-      if (open) {
-        // Avoid popping the on-screen keyboard over the panel on touch devices.
-        if (matchMedia('(pointer: fine)').matches) input.focus();
-        else closeBtn.focus();
-      } else {
-        toggle.focus();
-      }
+      if (open) input.focus();
+      else toggle.focus();
     };
 
     toggle.addEventListener('click', () => setOpen(panel.hidden));
-    closeBtn.addEventListener('click', () => setOpen(false));
+    close.addEventListener('click', () => setOpen(false));
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !panel.hidden) setOpen(false);
     });
 
-    // Keep the sheet above the on-screen keyboard on mobile browsers.
-    const vv = window.visualViewport;
-    if (vv) {
-      const sync = () => {
-        root.style.setProperty('--vvh', `${vv.height}px`);
-        // iOS keeps the layout viewport under the keyboard; lift the sheet by the covered height.
-        root.style.setProperty('--kb', `${Math.max(0, window.innerHeight - vv.height - vv.offsetTop)}px`);
-      };
-      vv.addEventListener('resize', sync);
-      vv.addEventListener('scroll', sync);
-      sync();
-    }
-
-    const scrollToEnd = () => {
-      scroller.scrollTop = scroller.scrollHeight;
-    };
-
-    /** Minimal, safe formatting for model output: paragraphs, "-" lists and **bold**. No innerHTML. */
-    const appendInline = (parent: HTMLElement, text: string) => {
-      text.split(/(\*\*[^*]+\*\*)/g).forEach((part) => {
-        if (/^\*\*[^*]+\*\*$/.test(part)) {
-          const strong = document.createElement('strong');
-          strong.textContent = part.slice(2, -2);
-          parent.append(strong);
-        } else if (part) {
-          parent.append(document.createTextNode(part));
-        }
-      });
-    };
-    const renderText = (container: HTMLElement, text: string) => {
-      for (const block of text.trim().split(/\n{2,}/)) {
-        const lines = block.split('\n');
-        if (lines.every((l) => /^\s*[-*•]\s+/.test(l))) {
-          const ul = document.createElement('ul');
-          for (const l of lines) {
-            const li = document.createElement('li');
-            appendInline(li, l.replace(/^\s*[-*•]\s+/, ''));
-            ul.append(li);
-          }
-          container.append(ul);
-        } else {
-          const p = document.createElement('p');
-          lines.forEach((l, i) => {
-            if (i) p.append(document.createElement('br'));
-            appendInline(p, l);
-          });
-          container.append(p);
-        }
-      }
-    };
-
-    const link = (href: string, text: string, external = false) => {
-      const a = document.createElement('a');
-      a.href = href;
-      a.textContent = text;
-      if (external) {
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-      }
-      return a;
-    };
-
-    const addMessage = (role: 'user' | 'bot', text?: string) => {
+    // Text only: model output is never parsed as HTML.
+    const addMessage = (role: 'user' | 'bot', text: string) => {
       const li = document.createElement('li');
       li.className = `msg ${role}`;
-      if (text !== undefined) {
-        if (role === 'user') {
-          const p = document.createElement('p');
-          p.textContent = text;
-          li.append(p);
-        } else {
-          renderText(li, text);
-        }
-      }
+      li.textContent = text;
       log.append(li);
-      scrollToEnd();
+      log.scrollTop = log.scrollHeight;
       return li;
     };
 
     const addSources = (li: HTMLElement, sources: Source[]) => {
       const names = [...new Set(sources.map((s) => s.source).filter((s) => typeof s === 'string'))];
       if (!names.length) return;
-      const details = document.createElement('details');
-      details.className = 'msg-sources';
-      const summary = document.createElement('summary');
-      summary.textContent = `Based on ${names.length} source${names.length > 1 ? 's' : ''}`;
-      const ul = document.createElement('ul');
-      for (const name of names) {
-        const item = document.createElement('li');
-        const page = sourcePages[name];
-        if (page) item.append(link(page.href, page.label));
-        else item.textContent = name.replace(/\.txt$/, '').replace(/[_-]+/g, ' ');
-        ul.append(item);
-      }
-      details.append(summary, ul);
-      li.append(details);
+      const small = document.createElement('small');
+      small.textContent = `Based on: ${names.map((n) => n.replace(/\.txt$/, '').replace(/[_-]+/g, ' ')).join(', ')}`;
+      li.append(small);
     };
 
-    const addError = (reason: 'timeout' | 'network' | 'server') => {
-      const li = addMessage('bot');
-      li.classList.add('error');
-      const p = document.createElement('p');
-      p.textContent =
-        reason === 'timeout'
-          ? 'The assistant is taking too long to respond, so I stopped waiting. '
-          : 'The assistant isn’t available right now. ';
-      p.append('You can still reach Bach by ', link(`mailto:${email}`, 'email'), ' or on ', link(linkedin, 'LinkedIn', true), '.');
-      li.append(p);
-      scrollToEnd();
+    const addError = (timedOut: boolean) => {
+      const li = addMessage('bot', timedOut ? 'Sorry, that took too long. ' : "Sorry, I couldn't reach the server. ");
+      li.append('You can email Bach at ');
+      const a = document.createElement('a');
+      a.href = `mailto:${email}`;
+      a.textContent = email;
+      li.append(a, '.');
     };
 
     const ask = async (question: string) => {
@@ -249,22 +115,10 @@ const sourcePages: Record<string, { label: string; href: string }> = {
       starters.hidden = true;
       addMessage('user', question);
       send.disabled = true;
-      log.setAttribute('aria-busy', 'true');
-
-      const pending = addMessage('bot');
+      const pending = addMessage('bot', 'Thinking…');
       pending.classList.add('pending');
-      const status = document.createElement('p');
-      status.innerHTML = '<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>';
-      const statusText = document.createElement('span');
-      statusText.textContent = 'Thinking…';
-      status.append(statusText);
-      pending.append(status);
-
       const controller = new AbortController();
-      const slow = setTimeout(() => {
-        statusText.textContent = 'Still working; the server may be waking up…';
-      }, SLOW_NOTICE_MS);
-      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
       try {
         const res = await fetch(`${api}/ask`, {
@@ -273,26 +127,21 @@ const sourcePages: Record<string, { label: string; href: string }> = {
           body: JSON.stringify({ question }),
           signal: controller.signal,
         });
-        if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { reason: 'server' as const });
-        const data: unknown = await res.json();
-        const answer = data && typeof data === 'object' ? (data as { answer?: unknown }).answer : undefined;
-        if (typeof answer !== 'string' || !answer.trim()) throw Object.assign(new Error('Malformed response'), { reason: 'server' as const });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: { answer?: unknown; sources?: unknown } = await res.json();
+        if (typeof data.answer !== 'string' || !data.answer.trim()) throw new Error('Malformed response');
         pending.remove();
-        const li = addMessage('bot', answer);
-        const sources = (data as { sources?: unknown }).sources;
-        if (Array.isArray(sources)) addSources(li, sources as Source[]);
+        const li = addMessage('bot', data.answer);
+        if (Array.isArray(data.sources)) addSources(li, data.sources as Source[]);
       } catch (err) {
-        console.warn('Ask Bach request failed:', err);
+        console.error('Chat request failed:', err);
         pending.remove();
-        const reason = controller.signal.aborted ? 'timeout' : ((err as { reason?: 'server' }).reason ?? 'network');
-        addError(reason);
+        addError(controller.signal.aborted);
       } finally {
-        clearTimeout(slow);
-        clearTimeout(timeout);
-        log.removeAttribute('aria-busy');
+        clearTimeout(timer);
         send.disabled = false;
         busy = false;
-        if (!panel.hidden && matchMedia('(pointer: fine)').matches) input.focus();
+        input.focus();
       }
     };
 
@@ -301,129 +150,151 @@ const sourcePages: Record<string, { label: string; href: string }> = {
       const question = input.value.trim();
       if (!question) return;
       input.value = '';
-      ask(question.slice(0, 500));
+      ask(question);
     });
     starters.addEventListener('click', (e) => {
       const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-q]');
       if (btn?.dataset.q) ask(btn.dataset.q);
-    });
-
-    // Other parts of the page can open the chat, e.g. the Ask Bach case study.
-    document.addEventListener('click', (e) => {
-      const opener = (e.target as HTMLElement).closest('[data-open-chat]');
-      if (opener) {
-        e.preventDefault();
-        setOpen(true);
-      }
     });
   }
 </script>
 
 <style>
   .chat {
-    --chat-gap: max(1rem, env(safe-area-inset-right));
-    position: fixed; right: var(--chat-gap); bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 60;
-    display: flex; flex-direction: column; align-items: flex-end; gap: .75rem;
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: .75rem;
     font-family: var(--sans);
   }
 
   .chat-toggle {
-    display: inline-flex; align-items: center; gap: .55rem; min-height: 48px; padding: 0 1.1rem 0 .95rem;
-    border: 1px solid color-mix(in srgb, var(--ink) 80%, transparent); border-radius: 999px;
-    background: var(--ink); color: var(--bg); font: 600 .9rem var(--sans); cursor: pointer;
-    box-shadow: var(--shadow-lg);
-    transition: transform .15s ease, background-color .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .7rem 1.1rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--bg);
+    font: 600 .92rem var(--sans);
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgb(0 0 0 / .18);
+    transition: transform .15s ease;
   }
-  .chat-toggle:hover { background: var(--ink-2); }
-  .chat-toggle svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .chat-toggle-ai {
-    margin-left: .2rem; padding: .05rem .35rem; border-radius: 4px; font: 600 .66rem/1.4 var(--mono); letter-spacing: .04em;
-    background: color-mix(in srgb, var(--bg) 18%, transparent);
-  }
-  .chat.is-open .chat-toggle { display: none; }
-  @media (prefers-reduced-motion: no-preference) { .chat-toggle:hover { transform: translateY(-2px); } }
+  .chat-toggle:hover { transform: translateY(-2px); }
+  .chat-toggle:focus-visible, .chat button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
   .chat-panel {
-    width: min(400px, calc(100vw - 2rem)); height: min(600px, calc(100dvh - 2rem));
-    display: flex; flex-direction: column; overflow: hidden;
-    background: var(--surface); color: var(--ink);
-    border: 1px solid var(--line-strong); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+    width: min(360px, calc(100vw - 2rem));
+    height: min(480px, calc(100dvh - 7rem));
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgb(0 0 0 / .2);
+    overflow: hidden;
   }
   .chat-panel[hidden] { display: none; }
 
-  .chat-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; padding: 1rem 1rem .85rem 1.1rem; border-bottom: 1px solid var(--line); }
-  .chat-head h2 { font: 600 1rem/1.3 var(--sans); display: flex; align-items: center; gap: .5rem; }
-  .chat-ai { padding: .05rem .4rem; border-radius: 4px; background: var(--accent-soft); color: var(--accent-ink); font: 500 .68rem/1.5 var(--mono); }
-  .chat-head p { margin: .3rem 0 0; font-size: .8rem; line-height: 1.45; color: var(--muted); }
+  .chat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .chat-head strong { display: block; font-size: .98rem; }
+  .chat-head span { font-size: .8rem; color: var(--muted); }
   .chat-close {
-    flex: none; display: grid; place-items: center; width: 36px; height: 36px; margin: -.25rem -.25rem 0 0;
-    border: 0; border-radius: var(--radius-sm); background: none; color: var(--muted); cursor: pointer;
+    border: 0;
+    background: none;
+    color: var(--muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
   }
-  .chat-close:hover { background: var(--surface-2); color: var(--ink); }
-  .chat-close svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
-  .chat-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 1rem 1rem .5rem; }
-  .chat-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .65rem; }
-  .msg { max-width: 88%; padding: .6rem .8rem; border-radius: 12px; font-size: .9rem; line-height: 1.55; overflow-wrap: anywhere; }
-  .msg :global(p) { margin: 0; }
-  .msg :global(p + p), .msg :global(ul + p), .msg :global(p + ul) { margin-top: .5rem; }
-  .msg :global(ul) { margin: 0; padding-left: 1.1rem; }
-  .msg.bot { align-self: flex-start; background: var(--surface-2); border-bottom-left-radius: 4px; }
-  .msg.user { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px; }
-  .msg.error { background: var(--amber-soft); color: var(--ink); }
-  .msg.pending { color: var(--muted); }
-  .msg.pending :global(p) { display: flex; align-items: center; gap: .55rem; }
+  .chat-log {
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+  }
+  .msg {
+    max-width: 85%;
+    padding: .55rem .8rem;
+    border-radius: 12px;
+    font-size: .92rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .msg.bot { align-self: flex-start; background: var(--surface); color: var(--ink); }
+  .msg.user { align-self: flex-end; background: var(--accent); color: var(--bg); }
+  .msg.pending { color: var(--faint); font-style: italic; }
   .msg :global(a) { color: inherit; text-decoration: underline; }
-  .msg.bot :global(a) { color: var(--accent-ink); }
+  .msg :global(small) { display: block; margin-top: .35rem; font-size: .75rem; color: var(--faint); }
 
-  .msg :global(.msg-sources) { margin-top: .5rem; font-size: .78rem; color: var(--muted); }
-  .msg :global(.msg-sources summary) { cursor: pointer; width: fit-content; }
-  .msg :global(.msg-sources ul) { margin-top: .25rem; }
-
-  .msg :global(.dots) { display: inline-flex; gap: 3px; }
-  .msg :global(.dots i) { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: .35; }
-  @media (prefers-reduced-motion: no-preference) {
-    .msg :global(.dots i) { animation: chat-dot 1.2s infinite ease-in-out; }
-    .msg :global(.dots i:nth-child(2)) { animation-delay: .15s; }
-    .msg :global(.dots i:nth-child(3)) { animation-delay: .3s; }
-  }
-  @keyframes chat-dot { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
-
-  .chat-starters { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .85rem; }
+  .chat-starters { display: flex; flex-wrap: wrap; gap: .4rem; }
   .chat-starters[hidden] { display: none; }
-  .starter {
-    min-height: 36px; padding: .35rem .7rem; border: 1px solid var(--line-strong); border-radius: 999px;
-    background: var(--surface); color: var(--ink-2); font: 500 .8rem/1.3 var(--sans); text-align: left; cursor: pointer;
+  .chat-starters button {
+    padding: .3rem .6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--muted);
+    font: inherit;
+    font-size: .8rem;
+    cursor: pointer;
   }
-  .starter:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .chat-starters button:hover { color: var(--ink); border-color: var(--faint); }
 
-  .chat-form { display: flex; gap: .5rem; padding: .75rem .85rem .5rem; border-top: 1px solid var(--line); }
+  .chat-form {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem;
+    border-top: 1px solid var(--line);
+  }
   .chat-form input {
-    flex: 1; min-width: 0; min-height: 44px; padding: .55rem .8rem;
-    border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--bg); color: var(--ink);
-    font: 400 16px/1.3 var(--sans); /* 16px stops iOS from zooming on focus */
+    flex: 1;
+    min-width: 0;
+    padding: .55rem .75rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--ink);
+    font: inherit;
+    font-size: 16px; /* 16px stops iOS from zooming on focus */
   }
   .chat-form input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-  .chat-send {
-    display: grid; place-items: center; width: 44px; flex: none; border: 0; border-radius: var(--radius-sm);
-    background: var(--accent); color: var(--on-accent); cursor: pointer;
+  .chat-form button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--bg);
+    cursor: pointer;
   }
-  .chat-send:disabled { opacity: .5; cursor: progress; }
-  .chat-foot { margin: 0; padding: 0 .9rem .7rem; font-size: .75rem; color: var(--faint); }
+  .chat-form button:disabled { opacity: .5; cursor: wait; }
+  .chat-foot { margin: 0; padding: 0 .75rem .6rem; font-size: .75rem; color: var(--faint); }
 
-  .chat :global(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* Phones: a compact round launcher and a full-width sheet that respects the keyboard. */
-  @media (max-width: 560px) {
-    .chat { --chat-gap: max(.85rem, env(safe-area-inset-right)); bottom: max(.85rem, env(safe-area-inset-bottom)); }
-    .chat-toggle { width: 52px; height: 52px; padding: 0; justify-content: center; }
-    .chat-toggle-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .chat.is-open { left: 0; right: 0; bottom: var(--kb, 0px); }
-    .chat-panel {
-      width: 100vw; height: min(calc(var(--vvh, 100dvh) - 1rem), 640px);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0;
-    }
+  @media (max-width: 480px) {
+    .chat { right: 1rem; bottom: 1rem; }
+    .chat-toggle span { display: none; }
+    .chat-toggle { padding: .85rem; }
   }
-
-  @media print { .chat { display: none !important; } }
 </style>
+

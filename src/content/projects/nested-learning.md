@@ -14,8 +14,6 @@ stack: ["Python", "PyTorch", "Triton (via flash-linear-attention)", "Hydra", "uv
 github: "https://github.com/bachnguyennn/nested_learning"
 ---
 
-import Flow from '../../components/diagrams/Flow.astro';
-
 ## Overview
 
 Google's Nested Learning paper describes HOPE, an architecture in which parts of the model update at different speeds: some weights change at every token, others only every few hundred steps. This project starts from an **existing open-source, mechanism-level reproduction** of HOPE by [kmccleary3301](https://github.com/kmccleary3301/nested_learning) (Apache-2.0). I imported it in April 2026 and built on top of it.
@@ -35,18 +33,14 @@ Google's Nested Learning paper describes HOPE, an architecture in which parts of
 
 ## Memory hierarchy in my configuration
 
-<figure class="figure-diagram">
-  <Flow
-    label="Memory tiers in the experimental configuration"
-    steps={[
-      { kicker: 'In context', title: 'Self-modifying Titans', detail: 'fast weights, FLA delta-rule kernel', tone: 'accent' },
-      { kicker: 'Every step', title: 'CMS fast tier', detail: 'MLP memory' },
-      { kicker: 'Every 16 steps', title: 'CMS slow tier', detail: 'MLP memory' },
-      { kicker: 'Every 64 steps', title: 'CMS ultra tier', detail: 'fixed K × D slot memory', tone: 'store' },
-    ]}
-  />
-  <figcaption>Update cadence of each memory level in the experimental <code>kaggle_fla_test</code> configuration.</figcaption>
-</figure>
+```text
+in context      Self-modifying Titans   fast weights, FLA delta-rule kernel
+every step      CMS fast tier           MLP memory
+every 16 steps  CMS slow tier           MLP memory
+every 64 steps  CMS ultra tier          fixed K × D slot memory
+```
+
+Update cadence of each memory level in the experimental `kaggle_fla_test` configuration.
 
 ## Validation
 

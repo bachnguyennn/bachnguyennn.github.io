@@ -17,8 +17,6 @@ result:
   label: "Pneumonia recall (378 / 390)"
   context: "Official Kaggle test split (624 images). Specificity is 79.5%: 48 of 234 normal images were flagged."
 github: "https://github.com/bachnguyennn/Chest_X-Pneumonia-Detection"
-cover: "../../assets/projects/chest-xray-pneumonia/gradcam.png"
-coverAlt: "A chest X-ray next to its Grad-CAM and Eigen-CAM heatmaps, with activation concentrated over the lung fields."
 resume:
   - "Fine-tuned an ImageNet-pretrained ResNet50 on pediatric chest X-rays with weighted sampling and a weighted loss, selecting checkpoints by validation F1."
   - "Reached 96.9% pneumonia recall and 0.975 PR-AUC on the held-out test split, and documented the trade-off: 79.5% specificity."

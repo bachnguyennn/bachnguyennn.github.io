@@ -15,8 +15,6 @@ result:
   label: "against the closing line"
   context: "+5.7% yield over 1,379 bets, but the 95% bootstrap interval [−3.2%, +15.0%] includes zero (p = 0.11)."
 github: "https://github.com/bachnguyennn/Expected-Goal-Prediction"
-cover: "../../assets/projects/expected-goals/calibration.png"
-coverAlt: "Calibration curve for the expected-goals model, close to the diagonal and to StatsBomb's own xG."
 resume:
   - "Built a shot-level xG model (XGBoost with Platt calibration) on StatsBomb open data; Brier 0.085 on an unseen tournament against StatsBomb's own 0.079."
   - "Backtested a Dixon-Coles simulator with fractional Kelly staking against Pinnacle closing odds over 760 La Liga matches, re-fitting only on prior games."

@@ -1,5 +1,4 @@
 import { defineConfig } from 'astro/config';
-import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 
 // The canonical origin. GitHub Pages sets PUBLIC_SITE_URL in CI; every other build
@@ -33,12 +32,11 @@ export default defineConfig({
     rehypePlugins: [rehypeBaseLinks],
   },
   integrations: [
-    mdx(),
     sitemap({
       filter: (page) => !/\/404\/?$/.test(page),
     }),
   ],
   build: {
-    inlineStylesheets: 'auto',
+    inlineStylesheets: 'always',
   },
 });

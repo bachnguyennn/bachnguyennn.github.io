@@ -1,186 +1,100 @@
 ---
-// Experience entries rendered into static HTML from src/data/experience.ts (the canonical record).
-// With `live`, the browser also asks the Ask Bach content API (GET /content/experience, backed by
-// Cosmos DB) for records that are not on the page yet. Known ids are never replaced; see
-// src/lib/experience-merge.ts for the full reconciliation policy.
+// Experience entries, rendered from src/data/experience.ts at build time (the canonical record).
+// With `live`, the browser also asks the FastAPI backend (GET /content/experience, backed by Cosmos DB)
+// for records that are not on the page yet. Known ids are never replaced, so visitors with and without
+// JavaScript see the same history; see src/lib/experience-merge.ts for the full policy.
 import type { ExperienceEntry } from '../data/experience';
 
 interface Props {
   entries: ExperienceEntry[];
-  variant?: 'compact' | 'full';
+  // Show highlight bullets (the /experience page) or just role, org and date (the homepage).
+  details?: boolean;
   live?: boolean;
-  /** Heading level for role titles, to keep the page outline correct. */
-  level?: 3 | 4;
 }
 
-const { entries, variant = 'full', live = false, level = 3 } = Astro.props;
-const Heading = `h${level}` as 'h3' | 'h4';
+const { entries, details = false, live = false } = Astro.props;
 
 // Same base URL as ChatWidget: PUBLIC_CHAT_API_URL, defaulting to the deployed Azure Container App.
 const apiUrl = (
   import.meta.env.PUBLIC_CHAT_API_URL ?? 'https://ask-bach-api.yellowbush-fb5a973b.canadacentral.azurecontainerapps.io'
 ).replace(/\/$/, '');
+
+const orgLine = (e: ExperienceEntry) => [e.org, e.orgDetail, e.location].filter(Boolean).join(' · ');
 ---
 
-<ol
-  class:list={['xp-list', `xp-${variant}`]}
-  data-experience-list
-  data-api={live ? apiUrl : undefined}
-  data-variant={variant}
-  data-level={level}
->
+<ul class="entries" data-experience-list data-api={live ? apiUrl : undefined} data-details={details ? 'true' : undefined}>
   {entries.map((e) => (
-    <li class="xp" id={e.id} data-id={e.id} data-start={e.start} data-end={e.end}>
-      <div class="xp-when">
-        <span class="xp-date">{e.date}</span>
-        {variant === 'full' && <span class="xp-loc">{e.location}</span>}
-      </div>
-      <div class="xp-body">
-        <Heading class="xp-role">
-          {e.role}
-          {e.roleDetail && <span class="xp-role-detail">, {e.roleDetail}</span>}
-        </Heading>
-        <p class="xp-org">
-          {e.org}
-          {e.orgDetail && <span class="xp-org-detail"> · {e.orgDetail}</span>}
-        </p>
-        {variant === 'compact' ? (
-          <p class="xp-summary">{e.summary}</p>
-        ) : (
-          <>
-            <ul class="xp-bullets">{e.bullets.map((b) => <li>{b}</li>)}</ul>
-            {e.skills.length > 0 && (
-              <ul class="tags xp-skills" aria-label="Skills used">
-                {e.skills.map((s) => <li class="tag">{s}</li>)}
-              </ul>
-            )}
-          </>
-        )}
-      </div>
+    <li class="entry" id={e.id} data-id={e.id} data-start={e.start} data-end={e.end}>
+      <div class="top"><h3>{e.role}{e.roleDetail && `, ${e.roleDetail}`}</h3><span class="date">{e.date}</span></div>
+      <p class="sub">{orgLine(e)}</p>
+      {details && <ul>{e.bullets.map((b) => <li>{b}</li>)}</ul>}
     </li>
   ))}
-</ol>
+</ul>
 
 <script>
   import { planMerge, type ApiExperience } from '../lib/experience-merge';
 
   const TIMEOUT_MS = 6000;
-  let request: Promise<unknown> | null = null;
-
-  // One request per page, however many lists ask for it.
-  function fetchExperience(api: string): Promise<unknown> {
-    request ??= (async () => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-      try {
-        const res = await fetch(`${api}/content/experience`, { signal: controller.signal, headers: { Accept: 'application/json' } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
-      } finally {
-        clearTimeout(timer);
-      }
-    })();
-    return request;
-  }
 
   // Built with textContent only: API data is never parsed as HTML.
-  function renderEntry(r: ApiExperience, variant: string, level: string): HTMLLIElement {
+  function renderEntry(e: ApiExperience, details: boolean): HTMLLIElement {
     const li = document.createElement('li');
-    li.className = 'xp';
-    li.id = r.id;
-    li.dataset.id = r.id;
-    li.dataset.source = 'api';
+    li.className = 'entry';
+    li.id = e.id;
+    li.dataset.id = e.id;
 
-    const when = document.createElement('div');
-    when.className = 'xp-when';
+    const top = document.createElement('div');
+    top.className = 'top';
+    const role = document.createElement('h3');
+    role.textContent = e.role;
     const date = document.createElement('span');
-    date.className = 'xp-date';
-    date.textContent = r.period;
-    when.append(date);
+    date.className = 'date';
+    date.textContent = e.period;
+    top.append(role, date);
 
-    const body = document.createElement('div');
-    body.className = 'xp-body';
-    const role = document.createElement(level === '4' ? 'h4' : 'h3');
-    role.className = 'xp-role';
-    role.textContent = r.role;
     const org = document.createElement('p');
-    org.className = 'xp-org';
-    org.textContent = r.organization;
-    body.append(role, org);
+    org.className = 'sub';
+    org.textContent = e.organization;
+    li.append(top, org);
 
-    if (variant === 'full' && r.highlights.length) {
-      const ul = document.createElement('ul');
-      ul.className = 'xp-bullets';
-      for (const h of r.highlights) {
+    if (details && e.highlights.length) {
+      const bullets = document.createElement('ul');
+      for (const h of e.highlights) {
         const item = document.createElement('li');
         item.textContent = h;
-        ul.append(item);
+        bullets.appendChild(item);
       }
-      body.append(ul);
-    } else if (r.highlights[0]) {
-      const summary = document.createElement('p');
-      summary.className = 'xp-summary';
-      summary.textContent = r.highlights[0];
-      body.append(summary);
+      li.appendChild(bullets);
     }
-
-    li.append(when, body);
     return li;
   }
 
-  async function enhance(list: HTMLElement) {
-    const api = list.dataset.api;
-    if (!api) return;
+  async function loadExperience(list: HTMLElement) {
+    const details = list.dataset.details === 'true';
     const items = [...list.querySelectorAll<HTMLElement>(':scope > li[data-id]')];
     const staticEntries = items.map((li) => ({ id: li.dataset.id!, start: li.dataset.start ?? '', end: li.dataset.end ?? '' }));
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-      const plan = planMerge(staticEntries, await fetchExperience(api));
+      const response = await fetch(`${list.dataset.api}/content/experience`, { signal: controller.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const plan = planMerge(staticEntries, await response.json());
+
       for (const { record, before } of plan.additions) {
         if (list.querySelector(`:scope > [data-id="${CSS.escape(record.id)}"]`)) continue;
-        const node = renderEntry(record, list.dataset.variant ?? 'full', list.dataset.level ?? '3');
         const anchor = before ? list.querySelector(`:scope > [data-id="${CSS.escape(before)}"]`) : null;
-        list.insertBefore(node, anchor);
+        list.insertBefore(renderEntry(record, details), anchor);
       }
-      if (plan.ignored.length) {
-        console.info('[experience] Kept the page copy for API records:', plan.ignored.join(', '));
-      }
+      if (plan.ignored.length) console.info('Kept the page copy for API records:', plan.ignored.join(', '));
     } catch (error) {
-      // The static list is complete on its own; nothing to show the visitor.
-      console.info('[experience] Content API unavailable; showing the built-in record.', error);
+      // Keep the build-time entries.
+      console.info('Unable to load experience from API:', error);
+    } finally {
+      clearTimeout(timer);
     }
   }
 
-  document.querySelectorAll<HTMLElement>('[data-experience-list][data-api]').forEach(enhance);
+  document.querySelectorAll<HTMLElement>('[data-experience-list][data-api]').forEach(loadExperience);
 </script>
-
-<style>
-  .xp-list { list-style: none; margin: 0; padding: 0; }
-  .xp {
-    display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: var(--s-2) var(--s-6);
-    padding-block: var(--s-5); border-top: 1px solid var(--line);
-  }
-  .xp:first-child { border-top: 0; padding-top: 0; }
-  .xp-when { display: flex; flex-direction: column; gap: .15rem; padding-top: .2rem; }
-  .xp-date { font: 500 .8rem/1.4 var(--mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .xp-loc { font-size: var(--fs-xs); color: var(--faint); }
-  .xp-role { font-size: 1.0625rem; font-weight: 600; line-height: 1.35; }
-  .xp-role-detail { font-weight: 400; color: var(--muted); }
-  .xp-org { margin: .15rem 0 0; color: var(--muted); font-size: .9375rem; }
-  .xp-org-detail { color: var(--faint); }
-  .xp-summary { margin: var(--s-2) 0 0; color: var(--ink-2); font-size: .9375rem; }
-  .xp-bullets { margin: var(--s-3) 0 0; padding-left: 1.1rem; color: var(--ink-2); }
-  .xp-bullets li { margin: .35rem 0; padding-left: .15rem; }
-  .xp-bullets li::marker { color: var(--faint); }
-  .xp-skills { margin-top: var(--s-3); }
-  .xp:target { scroll-margin-top: calc(var(--header-h) + 1rem); }
-  .xp:target .xp-role { color: var(--accent-ink); }
-
-  .xp-compact .xp { grid-template-columns: 9.5rem minmax(0, 1fr); padding-block: var(--s-4); }
-  .xp-compact .xp:first-child { padding-top: 0; }
-
-  @media (max-width: 640px) {
-    .xp, .xp-compact .xp { grid-template-columns: minmax(0, 1fr); gap: var(--s-1); }
-    .xp-when { flex-direction: row; flex-wrap: wrap; gap: .1rem .75rem; padding: 0; }
-  }
-</style>

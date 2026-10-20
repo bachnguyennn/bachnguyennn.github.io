@@ -7,65 +7,41 @@ async function apiDown(page: Page) {
   await page.route(API, (route) => route.abort('connectionrefused'));
 }
 
-const isMobile = (page: Page) => (page.viewportSize()?.width ?? 1280) < 821;
-
-async function openNav(page: Page) {
-  if (isMobile(page)) await page.getByRole('button', { name: 'Menu' }).click();
-}
-
 test.beforeEach(async ({ page }) => {
   await apiDown(page);
 });
 
-test('homepage shows identity, featured work and contact', async ({ page }) => {
+test('homepage shows identity, featured projects and contact', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Bach Nguyen/);
   await expect(page.getByRole('heading', { level: 1, name: 'Bach Nguyen' })).toBeVisible();
-  await expect(page.getByText('Machine Learning, Applied AI & Software Engineering').first()).toBeVisible();
-  for (const name of ['Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning', 'Chest X-Ray Pneumonia Detection']) {
+  for (const name of ['CascadedViT Continual Learning', 'Ask Bach', 'MarketGuard', 'Chest X-Ray Pneumonia Detection']) {
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   }
-  await expect(page.locator('a[href^="mailto:vubach.nguyen@ontariotechu.net"]').first()).toBeVisible();
+  await expect(page.locator('#contact a[href="mailto:vubach.nguyen@ontariotechu.net"]')).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bachnguyennn.github.io/');
 });
 
 test('primary navigation reaches every section', async ({ page }) => {
   await page.goto('/');
   for (const [label, path, heading] of [
-    ['Projects', '/projects/', 'Projects'],
-    ['Research', '/research/', 'Continual Learning for Efficient Vision Transformers'],
-    ['Experience', '/experience/', 'Research, teaching, and industry'],
-    ['Resume', '/resume/', 'Bach Nguyen'],
-    ['Contact', '/contact/', 'Get in touch'],
+    ['Research', '/research', 'Continual Learning for CascadedViT'],
+    ['Projects', '/projects', 'Projects'],
+    ['Experience', '/experience', 'Experience'],
+    ['Resume', '/resume', 'Bach Nguyen'],
   ] as const) {
-    await openNav(page);
     await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: label }).click();
-    await expect(page).toHaveURL(new RegExp(`${path}$`));
+    await expect(page).toHaveURL(new RegExp(`${path}/?$`));
     await expect(page.getByRole('heading', { level: 1, name: heading })).toBeVisible();
-    // The collapsed mobile menu is hidden from role queries, so check the markup directly.
-    await expect(page.locator('#primary-nav a[aria-current="page"]')).toHaveText(label);
+    await expect(page.getByRole('navigation', { name: 'Primary' }).locator('a.active')).toHaveText(label);
   }
 });
 
-test('projects directory lists every project and filters by area', async ({ page }) => {
+test('projects page lists every project and opens write-ups at their original URLs', async ({ page }) => {
   await page.goto('/projects/');
-  const cards = page.locator('.project-card');
-  await expect(cards).toHaveCount(12);
-  await page.getByRole('button', { name: /^Data engineering/ }).click();
-  await expect(page.getByRole('button', { name: /^Data engineering/ })).toHaveAttribute('aria-pressed', 'true');
-  const visible = page.locator('.project-card:visible');
-  await expect(visible.first()).toBeVisible();
-  for (const c of await visible.all()) await expect(c).toHaveAttribute('data-categories', /\bdata\b/);
-  await expect(page).toHaveURL(/area=data/);
-  await page.getByRole('button', { name: /^All/ }).click();
-  await expect(page.locator('.project-card:visible')).toHaveCount(12);
-});
-
-test('case studies open from the directory and keep their original URLs', async ({ page }) => {
-  await page.goto('/projects/');
-  await page.getByRole('link', { name: /Read the case study on Ask Bach/ }).click();
-  await expect(page).toHaveURL(/\/projects\/ask-bach\/$/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Ask Bach');
+  await expect(page.locator('main .entries > .entry')).toHaveCount(12);
+  await page.locator('.entry', { has: page.getByRole('heading', { name: 'Ask Bach', exact: true }) }).getByRole('link', { name: 'Write-up →' }).click();
+  await expect(page).toHaveURL(/\/projects\/ask-bach\/?$/);
   await expect(page.getByRole('heading', { name: 'Evaluation' })).toBeVisible();
 
   for (const slug of ['market-guard', 'hospital-readmission', 'chest-xray-pneumonia', 'energy-demand-forecasting', 'expected-goals', 'astrolok', 'fasttext-embeddings', 'nested-learning']) {
@@ -78,7 +54,7 @@ test('case studies open from the directory and keep their original URLs', async 
 test('research page explains the thesis without claiming results', async ({ page }) => {
   await page.goto('/research/');
   await expect(page.getByText('Dr. Faisal Qureshi').first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Progress and my contributions' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Progress' })).toBeVisible();
   await expect(page.getByText('Results are not public yet', { exact: false }).first()).toBeVisible();
 });
 
@@ -86,7 +62,7 @@ test('HTML resume is complete without JavaScript', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto('/resume/');
-  for (const section of ['Summary', 'Education', 'Experience', 'Research', 'Projects', 'Technical skills', 'Leadership & community', 'Certifications']) {
+  for (const section of ['Education', 'Experience', 'Research', 'Projects', 'Technical skills', 'Leadership & community', 'Certifications']) {
     await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
   }
   for (const role of ['Undergraduate Thesis Researcher', 'Teaching Assistant', 'IT Intern', 'Data Engineer (Volunteer)', 'Events Coordinator']) {
@@ -105,20 +81,13 @@ test('PDF resume is served', async ({ page, request }) => {
   expect(res.headers()['content-type']).toContain('pdf');
 });
 
-test('contact page links to email, LinkedIn and GitHub', async ({ page }) => {
-  await page.goto('/contact/');
-  await expect(page.locator('main a[href="mailto:vubach.nguyen@ontariotechu.net"]').first()).toBeVisible();
-  await expect(page.locator('main a[href="https://www.linkedin.com/in/bach-nguyen-vu"]').first()).toBeVisible();
-  await expect(page.locator('main a[href="https://github.com/bachnguyennn"]').first()).toBeVisible();
-});
-
 test('chat opens, closes with Escape, and returns focus', async ({ page }) => {
   await page.goto('/');
-  const launcher = page.getByRole('button', { name: /Ask Bach/ });
+  const launcher = page.getByRole('button', { name: 'Chat with me' });
   await launcher.click();
-  const panel = page.getByRole('dialog', { name: /Ask Bach/ });
+  const panel = page.getByRole('dialog', { name: 'Chat with Bach' });
   await expect(panel).toBeVisible();
-  await expect(panel.getByText('It is a bot, not Bach', { exact: false })).toBeVisible();
+  await expect(panel.getByText('An AI assistant, not Bach', { exact: false })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(panel).toBeHidden();
   await expect(launcher).toBeFocused();
@@ -129,35 +98,33 @@ test('chat opens, closes with Escape, and returns focus', async ({ page }) => {
 
 test('chat failure shows a contact fallback and the page keeps working', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /Ask Bach/ }).click();
+  await page.getByRole('button', { name: 'Chat with me' }).click();
   await page.getByRole('button', { name: 'What is Bach researching?' }).click();
-  const error = page.locator('.msg.error');
-  await expect(error).toContainText('isn’t available right now');
-  await expect(error.getByRole('link', { name: 'email' })).toHaveAttribute('href', 'mailto:vubach.nguyen@ontariotechu.net');
-  await expect(page.getByRole('button', { name: 'Send question' })).toBeEnabled();
+  const reply = page.locator('.msg.bot').last();
+  await expect(reply).toContainText("couldn't reach the server");
+  await expect(reply.getByRole('link')).toHaveAttribute('href', 'mailto:vubach.nguyen@ontariotechu.net');
+  await expect(page.getByRole('button', { name: 'Send' })).toBeEnabled();
   await page.keyboard.press('Escape');
   await page.goto('/experience/');
   await expect(page.locator('#cmha-experience')).toBeVisible();
 });
 
-test('chat renders answers as text and lists sources', async ({ page }) => {
+test('chat shows answers as plain text with their sources', async ({ page }) => {
   await page.unroute(API);
   await page.route(/\/ask$/, (route) =>
     route.fulfill({
-      json: { answer: 'Bach is researching **continual learning**.\n\n<img src=x onerror=alert(1)>', sources: [{ source: 'research.txt', chunk_id: 0 }, { source: 'unknown_doc.txt', chunk_id: 2 }] },
+      json: { answer: 'Bach researches continual learning. <img src=x onerror=alert(1)>', sources: [{ source: 'research.txt', chunk_id: 0 }, { source: 'project_market_guard.txt', chunk_id: 2 }] },
     }),
   );
   await page.route(/\/content\/experience$/, (route) => route.fulfill({ json: { experiences: [] } }));
   await page.goto('/');
-  await page.getByRole('button', { name: /Ask Bach/ }).click();
+  await page.getByRole('button', { name: 'Chat with me' }).click();
   await page.getByRole('textbox', { name: 'Your question' }).fill('What is Bach researching?');
-  await page.getByRole('button', { name: 'Send question' }).click();
+  await page.getByRole('button', { name: 'Send' }).click();
   const answer = page.locator('.msg.bot').last();
-  await expect(answer.locator('strong')).toHaveText('continual learning');
+  await expect(answer).toContainText('<img src=x onerror=alert(1)>');
   await expect(answer.locator('img')).toHaveCount(0);
-  await answer.getByText('Based on 2 sources').click();
-  await expect(answer.getByRole('link', { name: 'Thesis research' })).toBeVisible();
-  await expect(answer.getByText('unknown doc')).toBeVisible();
+  await expect(answer.locator('small')).toHaveText('Based on: research, project market guard');
 });
 
 test('experience API cannot replace or duplicate the static record', async ({ page }) => {
@@ -185,26 +152,11 @@ test('experience API cannot replace or duplicate the static record', async ({ pa
   expect(ids.indexOf('new-ml-role')).toBe(ids.indexOf('cmha-experience') - 1);
 });
 
-test('mobile menu opens, navigates, and closes with Escape', async ({ page }) => {
-  test.skip(!isMobile(page), 'mobile only');
-  await page.goto('/');
-  const toggle = page.getByRole('button', { name: 'Menu' });
-  await expect(page.getByRole('navigation', { name: 'Primary' })).toBeHidden();
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-  await page.keyboard.press('Escape');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await toggle.click();
-  await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Research' }).click();
-  await expect(page).toHaveURL(/\/research\/$/);
-});
-
 test('pages have one h1, alt text on images, and no horizontal overflow', async ({ page }) => {
-  for (const path of ['/', '/projects/', '/projects/market-guard/', '/research/', '/experience/', '/resume/', '/contact/']) {
+  for (const path of ['/', '/projects/', '/projects/market-guard/', '/research/', '/experience/', '/resume/']) {
     await page.goto(path);
     await expect(page.locator('h1'), path).toHaveCount(1);
-    const missingAlt = await page.locator('img:not([alt])').count();
-    expect(missingAlt, `${path} images without alt`).toBe(0);
+    expect(await page.locator('img:not([alt])').count(), `${path} images without alt`).toBe(0);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, `${path} horizontal overflow`).toBeLessThanOrEqual(0);
   }

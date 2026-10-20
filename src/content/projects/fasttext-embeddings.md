@@ -15,8 +15,6 @@ result:
   label: "WordSim-353 coverage with subwords"
   context: "Against 99.4% for Skip-Gram. Analogy accuracy rose from 8.3% to 11.3%; both trail web-scale vectors (~71%)."
 github: "https://github.com/bachnguyennn/Fast-Text-Embedding-System"
-cover: "../../assets/projects/fasttext-embeddings/tsne-skipgram.png"
-coverAlt: "A t-SNE projection of the from-scratch embeddings with related words clustered together."
 ---
 
 ## Overview

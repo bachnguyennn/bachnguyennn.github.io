@@ -20,10 +20,10 @@ const categoryKey = z.enum(Object.keys(projectCategories) as [keyof typeof proje
 const statusKey = z.enum(Object.keys(projectStatuses) as [keyof typeof projectStatuses]);
 
 // One file per project: frontmatter feeds every card, filter and resume entry;
-// the Markdown body is the case study at /projects/<id>/.
+// the Markdown body is the write-up at /projects/<id>/.
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
-  schema: ({ image }) =>
+  loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
+  schema: () =>
     z.object({
       title: z.string(),
       /** Shorter name for cards and the resume. */
@@ -50,9 +50,6 @@ const projects = defineCollection({
       demo: z
         .object({ url: z.url(), label: z.string(), note: z.string().optional() })
         .optional(),
-      /** Card image; omitted cards render a typographic card instead. */
-      cover: image().optional(),
-      coverAlt: z.string().optional(),
       /** false = no case-study page; cards link to GitHub (or `href`). */
       caseStudy: z.boolean().default(true),
       /** Internal page that replaces the case study, e.g. /research/. */

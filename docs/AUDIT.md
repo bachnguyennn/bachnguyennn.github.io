@@ -4,6 +4,11 @@ Sources checked: this repository, `public/Resume.pdf` (Sep 2026), the public Git
 Ask Bach API (`/openapi.json`, `/content/experience`, one `/ask` request), and the Ask Bach knowledge-base
 documents in `AskBachBot/app/data/documents/`.
 
+## Design
+
+The original simple design (single column, Inter, one blue accent, light/dark by system setting) is kept.
+An interim visual redesign was reverted at Bach's request; only content, data structure and fixes remain.
+
 ## What was kept
 
 - Astro + TypeScript, static output, GitHub Pages workflow, project content collection.
@@ -18,10 +23,10 @@ documents in `AskBachBot/app/data/documents/`.
 | 1 | `astro.config.mjs` fell back to `https://example.github.io`. Local builds and the Azure Static Web Apps build emitted canonical URLs and a sitemap on `example.github.io`. | Fallback is now the production origin; `robots.txt` is generated from the same config. Verified for root and sub-path builds. |
 | 2 | Experience API reconciliation: any API record replaced the static entry with the same id. The live API returns a shorter CMHA record that drops two bullets and rewords "an estimated 5+ hours" as "saved over five staff hours", so JS visitors saw a less complete and less accurate history than search engines. New records were always appended at the end; no timeout or validation. | `src/lib/experience-merge.ts`: static record wins for known ids, new ids are validated, de-duplicated and placed by date, 6 s timeout, text-only rendering. Unit and browser tests cover the live payload. IDs were present and stable; they are now also validated as unique at build time. |
 | 3 | Facts duplicated in the homepage, `/experience/`, `courses.ts` and project write-ups, and out of sync with the PDF (a missing CMHA bullet, no CPG/SEMA detail). | Typed data modules in `src/data/`; projects carry structured frontmatter used by cards, filters and the HTML resume. |
-| 4 | No HTML resume; the nav "Resume" link opened the PDF in a new tab. | `/resume/`: complete semantic resume, no JS required, print stylesheet, print and PDF actions. |
-| 5 | Google Fonts loaded via CSS `@import` (render-blocking chain); no Open Graph image; generic structured data. | `<link>` with preconnect; generated `public/og.png`; Person/ProfilePage/CreativeWork JSON-LD; unique titles and descriptions. |
-| 6 | Chat: no timeout (a hung request spun forever), no AI disclosure, no starters, no keyboard-safe mobile layout. | Rebuilt widget: disclosure, starters, 45 s timeout with a "waking up" notice, safe Markdown-lite rendering, email/LinkedIn fallback, collapsible sources mapped to site pages, iOS keyboard handling. |
-| 7 | Print in dark mode: dark-theme selectors outranked print overrides. | Print overrides now match the dark selectors' specificity. |
+| 4 | No HTML resume; the nav "Resume" link opened the PDF in a new tab. | `/resume/`: complete resume in the site's existing style, no JS required, print stylesheet, print and PDF links. |
+| 5 | No Open Graph image; generic metadata. | Generated `public/og.png` (`npm run og`); Person JSON-LD; unique titles and descriptions. |
+| 6 | Chat: no timeout (a hung request spun forever), no AI disclosure, and the phone-size button had no accessible name. | Same look; added an AI disclosure line, starter questions, a 45 s timeout, an email fallback on errors, a short "Based on" sources line, and an `aria-label`. |
+| 7 | Header overflowed by 41px at 320px wide. | Tighter nav spacing below 380px only. |
 | 8 | Unused `blog` collection, `design_handoff_field_notes/` and `public/tools/*.svg`. | Left in place (not routed or referenced); safe to delete. |
 
 ## Content corrections (claims made more precise)
