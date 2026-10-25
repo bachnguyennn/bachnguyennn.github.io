@@ -13,7 +13,7 @@ export const skillGroups: { label: string; items: string[] }[] = [
   },
   {
     label: 'Data engineering',
-    items: ['ETL pipelines', 'Apache Spark (PySpark)', 'Delta Lake', 'Apache Kafka', 'BeautifulSoup', 'Apache Airflow'],
+    items: ['ETL pipelines', 'Apache Spark (PySpark)', 'Delta Lake', 'Databricks', 'Apache Kafka', 'BeautifulSoup', 'Apache Airflow'],
   },
   {
     label: 'Cloud & infrastructure',

@@ -1,5 +1,5 @@
 // Contact details and positioning shared by the header, footer, homepage, resume and SEO tags.
-// Source: public/Resume.pdf (Sep 2026) and the existing site.
+// Source: public/Resume.pdf (Oct 2026) and the existing site.
 
 export const profile = {
   name: 'Bach Nguyen',
@@ -21,5 +21,5 @@ export const profile = {
   site: 'https://bachnguyennn.github.io',
   resumePdf: '/Resume.pdf',
   // Date printed on the PDF's metadata; update when the PDF is regenerated.
-  resumePdfUpdated: 'September 2026',
+  resumePdfUpdated: 'October 2026',
 } as const;
