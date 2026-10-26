@@ -9,7 +9,7 @@ statusNote: "Exploratory research code; no published benchmark results."
 role: "Contributor to an existing open-source codebase"
 period: "2026"
 year: 2026
-order: 4
+order: 8
 stack: ["Python", "PyTorch", "Triton (via flash-linear-attention)", "Hydra", "uv", "pytest"]
 github: "https://github.com/bachnguyennn/nested_learning"
 ---

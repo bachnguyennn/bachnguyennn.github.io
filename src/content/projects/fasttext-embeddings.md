@@ -8,7 +8,7 @@ status: complete
 role: "Sole developer"
 period: "2025"
 year: 2025
-order: 8
+order: 9
 stack: ["Python", "PyTorch", "Gensim (baselines)", "scikit-learn", "t-SNE"]
 result:
   value: "100%"

@@ -9,8 +9,8 @@ statusNote: "Research prototype. Not validated or intended for clinical use."
 role: "Sole developer"
 period: "2025"
 year: 2025
-order: 3
-featured: true
+order: 6
+featured: false
 stack: ["Python", "PyTorch", "torchvision", "ResNet50", "Grad-CAM", "scikit-learn"]
 result:
   value: "96.9%"

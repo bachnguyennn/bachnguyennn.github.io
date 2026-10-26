@@ -8,7 +8,7 @@ status: complete
 role: "Analyst"
 period: "2024"
 year: 2024
-order: 11
+order: 12
 stack: ["Python", "pandas", "Seaborn", "Folium", "Nominatim geocoding"]
 github: "https://github.com/bachnguyennn/Ontario-Infrastructure-Analysis"
 caseStudy: false

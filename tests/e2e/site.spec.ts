@@ -13,11 +13,13 @@ test.beforeEach(async ({ page }) => {
 
 test('homepage shows identity, featured projects and contact', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle(/Bach Nguyen/);
+  await expect(page).toHaveTitle('Bach Nguyen · Machine Learning & Data Engineering');
   await expect(page.getByRole('heading', { level: 1, name: 'Bach Nguyen' })).toBeVisible();
-  for (const name of ['CascadedViT Continual Learning', 'Ask Bach', 'MarketGuard', 'Chest X-Ray Pneumonia Detection']) {
-    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
-  }
+  const selected = page.locator('main section').filter({ has: page.getByRole('heading', { name: 'Selected projects', exact: true }) });
+  await expect(selected.locator('.entries > .entry')).toHaveCount(3);
+  await expect(selected.getByRole('heading', { level: 3 })).toHaveText(['Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning']);
+  await expect(selected.getByRole('link', { name: 'All projects →', exact: true })).toHaveAttribute('href', '/projects/');
+  await expect(page.getByText('Open to new-graduate machine learning engineering and data engineering roles starting after April 2027.', { exact: true })).toBeVisible();
   await expect(page.locator('#contact a[href="mailto:vubach.nguyen@ontariotechu.net"]')).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://bachnguyennn.github.io/');
 });
@@ -38,8 +40,16 @@ test('primary navigation reaches every section', async ({ page }) => {
 });
 
 test('projects page lists every project and opens write-ups at their original URLs', async ({ page }) => {
-  await page.goto('/projects/');
+  await page.goto('/');
+  await page.getByRole('link', { name: 'All projects →', exact: true }).click();
+  await expect(page).toHaveURL(/\/projects\/?$/);
   await expect(page.locator('main .entries > .entry')).toHaveCount(12);
+  await expect(page.locator('main .entries > .entry h3')).toHaveText([
+    'Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning',
+    'Hospital Readmission Risk Model', 'Electricity Load Forecasting', 'Chest X-Ray Pneumonia Detection',
+    'Soccer xG / Value-Betting Engine', 'Nested Learning Architecture', 'FastText Subword Embeddings',
+    'AstroLoc-ML', 'Global GDP ETL Pipeline', 'Ontario Infrastructure Analysis',
+  ]);
   await page.locator('.entry', { has: page.getByRole('heading', { name: 'Ask Bach', exact: true }) }).getByRole('link', { name: 'Write-up →' }).click();
   await expect(page).toHaveURL(/\/projects\/ask-bach\/?$/);
   await expect(page.getByRole('heading', { name: 'Evaluation' })).toBeVisible();
@@ -65,7 +75,7 @@ test('HTML resume is complete without JavaScript', async ({ browser }) => {
   for (const section of ['Education', 'Experience', 'Research', 'Projects', 'Technical skills', 'Leadership & community', 'Certifications']) {
     await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible();
   }
-  for (const role of ['Undergraduate Thesis Researcher', 'Teaching Assistant', 'IT Intern', 'Data Engineer (Volunteer)', 'Events Coordinator']) {
+  for (const role of ['Undergraduate Thesis Researcher', 'Teaching Assistant', 'IT Intern', 'Data Engineering Volunteer', 'Events Coordinator']) {
     await expect(page.getByText(role, { exact: false }).first()).toBeVisible();
   }
   await expect(page.getByText('an estimated 5+ hours', { exact: false })).toBeVisible();

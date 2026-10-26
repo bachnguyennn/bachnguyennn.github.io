@@ -3,13 +3,13 @@
 
 export const profile = {
   name: 'Bach Nguyen',
-  headline: 'Machine Learning, Applied AI & Software Engineering',
+  headline: 'Machine Learning & Data Engineering',
   shortBio:
-    "Mathematics and Computer Science student at Ontario Tech University. I research continual learning for efficient vision transformers and build software that connects machine learning, data infrastructure, and the cloud.",
+    "I build machine learning systems and the data pipelines behind them. I'm a Mathematics and Computer Science student at Ontario Tech University researching how small vision models can keep learning new tasks.",
   location: 'Oshawa / Toronto, Ontario',
   graduation: 'April 2027',
   availability:
-    'Open to new-graduate Machine Learning, Applied AI, and Software Engineering roles starting after April 2027.',
+    'Open to new-graduate machine learning engineering and data engineering roles starting after April 2027.',
   email: 'vubach.nguyen@ontariotechu.net',
   // Only rendered on /resume/, matching the public PDF.
   phone: '(416) 806-2537',

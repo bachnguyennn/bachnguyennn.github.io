@@ -7,7 +7,7 @@ status: complete
 role: "Sole developer"
 period: "2025"
 year: 2025
-order: 10
+order: 11
 stack: ["Python", "BeautifulSoup", "requests", "pandas", "SQLite"]
 github: "https://github.com/bachnguyennn/ETL-Process---IMF-GDP"
 caseStudy: false

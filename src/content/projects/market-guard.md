@@ -1,7 +1,7 @@
 ---
 title: "MarketGuard: Replay-Safe Market Anomaly Pipeline"
 shortTitle: "MarketGuard"
-summary: "A medallion-architecture pipeline that archives live Coinbase trades in Azure, builds one-minute market metrics with Spark and Delta Lake, and flags statistical volume and price anomalies."
+summary: "A pipeline that turns a live crypto trade feed into per-minute market metrics and anomaly alerts, designed to avoid double-counting during replays and restarts. The dashboard shows manually refreshed snapshots."
 problem: "Turn a noisy, duplicate-prone exchange feed into market metrics and alerts that stay correct under replays, restarts and gaps."
 categories: [data]
 status: complete
@@ -30,7 +30,7 @@ resume:
 
 ## Overview
 
-MarketGuard takes trades from Coinbase's public WebSocket feed and turns them into one-minute market metrics and statistical alerts for BTC-USD and ETH-USD. The interesting part is not the detectors; it is making every step safe to run twice. Exchange feeds repeat messages, send malformed records, and go quiet. Duplicates must not inflate volume, gaps must not create fake signals, and the dashboard must never mix two half-published snapshots.
+MarketGuard takes trades from Coinbase's public WebSocket feed and turns them into one-minute market metrics and statistical alerts for BTC-USD and ETH-USD. Its medallion architecture separates raw trades (Bronze), cleaned trades (Silver), and market metrics (Gold). The interesting part is not the detectors; it is making every step safe to run twice. Exchange feeds repeat messages, send malformed records, and go quiet. Duplicates must not inflate volume, gaps must not create fake signals, and the dashboard must never mix two half-published snapshots.
 
 ## What is deployed, and what is not
 

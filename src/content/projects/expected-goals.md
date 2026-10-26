@@ -11,9 +11,9 @@ year: 2025
 order: 7
 stack: ["Python", "XGBoost", "scikit-learn", "SciPy", "StatsBombPy", "SHAP", "Optuna", "pytest"]
 result:
-  value: "No edge"
-  label: "against the closing line"
-  context: "+5.7% yield over 1,379 bets, but the 95% bootstrap interval [−3.2%, +15.0%] includes zero (p = 0.11)."
+  value: "0.085"
+  label: "Brier score vs StatsBomb's 0.079 on an unseen tournament"
+  context: "No evidence of an edge against the closing line: +5.7% yield over 1,379 bets, but the 95% bootstrap interval [−3.2%, +15.0%] includes zero (p = 0.11)."
 github: "https://github.com/bachnguyennn/Expected-Goal-Prediction"
 resume:
   - "Built a shot-level xG model (XGBoost with Platt calibration) on StatsBomb open data; Brier 0.085 on an unseen tournament against StatsBomb's own 0.079."

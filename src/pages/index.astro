@@ -79,25 +79,24 @@ const toolGroups: { label: string; items: { name: string; icon?: string; invertD
 ---
 
 <BaseLayout
-  title={`${profile.name} · Machine Learning & Software Engineering`}
+  title={`${profile.name} · ${profile.headline}`}
   fullTitle
-  description="Bach Nguyen is a Mathematics and Computer Science student at Ontario Tech University researching continual learning for efficient vision transformers and building ML, data, and cloud software. Graduating April 2027."
+  description="Bach Nguyen builds machine learning systems and data pipelines and researches continual learning for efficient vision models at Ontario Tech University. Open to new-graduate ML engineering and data engineering roles after April 2027."
   type="profile"
 >
   <div class="intro">
     <div class="avatar"><img src={asset('profile.jpg')} alt="Bach Nguyen" width="72" height="72" /></div>
     <div>
       <h1>Bach Nguyen</h1>
-      <p class="role">Mathematics &amp; Computer Science, Ontario Tech University · graduating April 2027</p>
+      <p class="role">{profile.headline} · Ontario Tech University · graduating April 2027</p>
     </div>
   </div>
 
   <p class="lead">
-    I work on machine learning, applied AI, and software engineering. I'm doing undergraduate thesis research on
-    <a href={withBase('/research/')}>continual learning for efficient vision transformers</a> in the Visual Computing Lab,
-    and I build software that connects ML with data infrastructure and the cloud.
+    I build machine learning systems and the data pipelines behind them. My undergraduate thesis in the Visual Computing Lab studies
+    <a href={withBase('/research/')}>how small, efficient vision models can keep learning new tasks</a> without forgetting earlier ones.
   </p>
-  <p class="muted">I'm looking for new-graduate roles in machine learning, applied AI, and software engineering starting after April 2027.</p>
+  <p class="muted">{profile.availability}</p>
 
   <div class="links">
     <a href={profile.github} target="_blank" rel="noopener">GitHub</a>
@@ -174,7 +173,7 @@ const toolGroups: { label: string; items: { name: string; icon?: string; invertD
   <section>
     <h2 class="section-title">About</h2>
     <p>I'm a fourth-year Integrated Mathematics and Computer Science student at Ontario Tech University.</p>
-    <p>I like problems that sit between software, data, and mathematics. I've automated scheduling and supported IT systems at the Canadian Mental Health Association, designed Azure data pipelines with Statistics Without Borders, and I'm now doing undergraduate research in continual learning and computer vision. I also TA a first-year engineering math course and help run the CS Club's hackathon.</p>
+    <p>At the Canadian Mental Health Association, I automated scheduling and supported IT systems. In a short Statistics Without Borders project, I designed sample Azure data pipelines. I now research continual learning and computer vision, TA first-year engineering math, and help run the CS Club's hackathon.</p>
     <p>Outside of school and work, I love reading books and watching football.</p>
   </section>
 

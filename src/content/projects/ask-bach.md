@@ -1,7 +1,7 @@
 ---
 title: "Ask Bach: Hybrid-Retrieval RAG Service"
 shortTitle: "Ask Bach"
-summary: "A retrieval-augmented chatbot that answers questions about my work from a curated knowledge base, served by FastAPI on Azure Container Apps and built into this site."
+summary: "A chatbot that answers questions about my work using notes I wrote and lists its sources. Try it with the chat button on this page."
 problem: "Answer free-form questions about my background without letting an LLM invent facts or citations."
 categories: [ai, data]
 status: deployed

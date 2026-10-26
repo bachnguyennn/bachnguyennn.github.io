@@ -24,7 +24,7 @@ const html = `<!doctype html>
   <img src="${photoSrc}" alt="">
   <div>
     <h1>Bach Nguyen</h1>
-    <p>Machine learning, applied AI &amp; software engineering<br>Mathematics &amp; Computer Science, Ontario Tech University</p>
+    <p>Machine Learning &amp; Data Engineering<br>Mathematics &amp; Computer Science, Ontario Tech University</p>
     <p class="site">bachnguyennn.github.io</p>
   </div>
 </body></html>`;

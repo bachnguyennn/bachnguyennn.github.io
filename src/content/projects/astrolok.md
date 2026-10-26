@@ -9,12 +9,12 @@ statusNote: "Negative result: the CNN performed close to random; the classical s
 role: "Sole developer"
 period: "2025"
 year: 2025
-order: 9
+order: 10
 stack: ["Python", "PyTorch", "EfficientNet", "OpenCV", "NumPy"]
 result:
-  value: "65.6°"
-  label: "best mean angular error"
-  context: "A random guess on the sphere averages about 90°. The classical triangle-hash solver succeeds."
+  value: "Classical solver"
+  label: "succeeds in a comparison with a CNN"
+  context: "The CNN's best mean angular error was 65.6°, versus about 90° for a random guess. The CNN was not a reliable replacement."
 github: "https://github.com/bachnguyennn/astro-ml"
 ---
 

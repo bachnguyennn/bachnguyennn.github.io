@@ -3,12 +3,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getProjects, displayTitle, projectHref, hasInternalPage } from '../../lib/projects';
 import { projectStatuses } from '../../lib/taxonomy';
 
-const projects = (await getProjects()).sort((a, b) => b.data.year - a.data.year || a.data.order - b.data.order);
+const projects = await getProjects();
 ---
 
 <BaseLayout
   title="Projects"
-  description="Machine learning, applied AI, computer vision, and data engineering projects by Bach Nguyen, with write-ups covering design, evaluation, and limitations."
+  description="Machine learning and data engineering projects by Bach Nguyen, with write-ups covering design, evaluation, and limitations."
 >
   <h1 class="page-title">Projects</h1>
   <p class="muted">Things I've built for research, work, and my own curiosity. Most have a longer write-up and all of them have code on GitHub. The status says what is deployed and what is not.</p>

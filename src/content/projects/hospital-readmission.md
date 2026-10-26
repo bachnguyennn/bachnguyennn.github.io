@@ -7,7 +7,7 @@ status: complete
 role: "Sole developer"
 period: "2025"
 year: 2025
-order: 6
+order: 4
 stack: ["Python", "XGBoost", "LightGBM", "scikit-learn", "Optuna", "SHAP"]
 result:
   value: "0.128"
