@@ -53,7 +53,19 @@ const starters = [
 
 <script>
   type Source = { source: string; chunk_id: number };
-  const TIMEOUT_MS = 45000; // a cold container can take a while to load the embedding model
+  type Failure = 'timeout' | 'rate-limited' | 'unavailable';
+
+  // A cold start (scale from zero) takes about 10 s; the server gives up on the LLM after 20 s.
+  const TIMEOUT_MS = 30000;
+  const WAKING_AFTER_MS = 3000;
+
+  class HttpError extends Error {
+    status: number;
+    constructor(status: number) {
+      super(`HTTP ${status}`);
+      this.status = status;
+    }
+  }
 
   const root = document.querySelector<HTMLElement>('.chat');
   if (root) {
@@ -100,8 +112,16 @@ const starters = [
       li.append(small);
     };
 
-    const addError = (timedOut: boolean) => {
-      const li = addMessage('bot', timedOut ? 'Sorry, that took too long. ' : "Sorry, I couldn't reach the server. ");
+    const addError = (failure: Failure) => {
+      if (failure === 'rate-limited') {
+        // The API allows a handful of questions per minute per visitor (HTTP 429).
+        addMessage('bot', "You're asking faster than I can answer. Please wait a few seconds and try again.");
+        return;
+      }
+      const li = addMessage(
+        'bot',
+        failure === 'timeout' ? 'Sorry, that took too long. ' : "Sorry, I couldn't reach the server. ",
+      );
       li.append('You can email Bach at ');
       const a = document.createElement('a');
       a.href = `mailto:${email}`;
@@ -119,6 +139,10 @@ const starters = [
       pending.classList.add('pending');
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+      // The API scales to zero when idle, so the first question can take ~10 s. Say so.
+      const waking = setTimeout(() => {
+        pending.textContent = 'Waking up the server. The first question can take about 10 seconds…';
+      }, WAKING_AFTER_MS);
 
       try {
         const res = await fetch(`${api}/ask`, {
@@ -127,7 +151,7 @@ const starters = [
           body: JSON.stringify({ question }),
           signal: controller.signal,
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new HttpError(res.status);
         const data: { answer?: unknown; sources?: unknown } = await res.json();
         if (typeof data.answer !== 'string' || !data.answer.trim()) throw new Error('Malformed response');
         pending.remove();
@@ -136,9 +160,16 @@ const starters = [
       } catch (err) {
         console.error('Chat request failed:', err);
         pending.remove();
-        addError(controller.signal.aborted);
+        addError(
+          controller.signal.aborted
+            ? 'timeout'
+            : err instanceof HttpError && err.status === 429
+              ? 'rate-limited'
+              : 'unavailable',
+        );
       } finally {
         clearTimeout(timer);
+        clearTimeout(waking);
         send.disabled = false;
         busy = false;
         input.focus();

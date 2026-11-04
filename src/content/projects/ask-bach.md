@@ -19,9 +19,10 @@ result:
 github: "https://github.com/bachnguyennn/AskBachBot"
 resume:
   - "Built a RAG service over a curated knowledge base: BM25 and MiniLM dense retrieval fused with Reciprocal Rank Fusion, answered by a Groq-hosted LLM with strict JSON-schema output."
-  - "Made citations unforgeable by design: the model returns only integer evidence IDs, and Python maps them back to the retrieved chunks."
-  - "Evaluated retrieval separately from generation (Recall, Precision, MRR @3); hybrid reached 10/10 Recall@3 on a small labeled set, and Cosmos DB vector search reproduced the in-memory dense results exactly."
-  - "Deployed with Docker on Azure Container Apps, using Container Apps secrets for the LLM key and a managed identity for Cosmos DB access."
+  - "Made source metadata unforgeable by design: the model returns only integer evidence IDs, and Python maps them back to the retrieved chunks."
+  - "Evaluated retrieval separately from generation (Recall, Precision, MRR @3); hybrid reached 10/10 Recall@3 on a small labeled set, enforced as a regression gate in GitHub Actions alongside 23 unit and API tests."
+  - "Deployed with Docker on Azure Container Apps, using Container Apps secrets for the LLM key and a managed identity for Cosmos DB access; cut cold start 3x (32 s to 10.6 s) and the image 5x (3.26 GB to 0.6 GB)."
+  - "Hardened the public API for a $0 budget: per-IP rate limiting to protect the free LLM quota, and a clean 503 fallback instead of raw errors."
 ---
 
 ## Overview
@@ -51,32 +52,34 @@ question
 
 ## Implementation decisions
 
-- **Citations the model cannot fabricate.** The model never sees filenames. It returns integer evidence IDs, and application code resolves them. Every returned source is guaranteed to be a chunk that was actually retrieved for that question.
+- **Sources the model cannot fabricate.** The model never sees filenames. It returns integer evidence IDs, and application code resolves them. Every returned source is guaranteed to be a chunk that was actually retrieved for that question. That guarantees the source is real, not that every sentence is supported by it (see Limitations).
 - **Refusal is a normal answer.** When the context does not contain the answer, the service says so and returns no sources, instead of erroring or guessing.
-- **Retrieval measured separately from generation.** Most bad answers start as bad retrieval, so retrieval has its own evaluation script that makes no LLM calls.
+- **Retrieval measured separately from generation.** Most bad answers start as bad retrieval, so retrieval has its own evaluation script that makes no LLM calls. It runs in CI on every push and fails the build if retrieval gets worse.
+- **Fail gracefully on a free tier.** A per-IP rate limit stops one visitor from using up the free LLM quota for everyone, and if the LLM or database is down the API returns a clean `503`, which this widget turns into a message with my email.
 - **Secrets stay on the server.** The Groq key is a Container Apps secret, Cosmos DB is reached through a managed identity with role-based access, and CORS only allows this site. The browser only ever sees a public API URL.
 
 ## Evaluation
 
-The benchmark is deliberately small: **10 queries**, made of 5 original questions and 5 paraphrases that share their relevance labels. The relevance rule was fixed before any results were seen.
+The benchmark is deliberately small: **10 queries**, made of 5 original questions and 5 paraphrases that share their relevance labels. The relevance rule was fixed before any results were seen. Results on the current knowledge base (21 documents, 115 chunks):
 
 | Metric | Dense | BM25 | Hybrid |
 |---|---:|---:|---:|
-| Recall@3 | 8/10 | **10/10** | **10/10** |
-| Precision@3 | 43% | **73%** | 70% |
-| MRR@3 *(added post hoc)* | 0.70 | 0.83 | **0.95** |
+| Recall@3 | 8/10 | 9/10 | **10/10** |
+| Precision@3 | 47% | **63%** | 60% |
+| MRR@3 | 0.75 | 0.80 | **0.88** |
 
 What I take from this:
 
-- **Hybrid clearly beats dense-only. Hybrid against BM25 is not settled.** They tie on recall, BM25 is slightly ahead on precision, and hybrid's MRR lead comes from two queries.
-- **10/10 recall hides a weakness.** For "What is Bach researching?", every retriever passes only through a one-sentence summary in the profile document.
+- **Hybrid is the only retriever that finds evidence for every question**, and it ranks it highest. BM25 is still slightly ahead on precision, so hybrid against BM25 is close.
+- **A bigger knowledge base is a harder haystack.** When the corpus grew from 33 to 115 chunks, hybrid precision fell from 70% to 60% and MRR from 0.95 to 0.88. I re-labelled the benchmark for the new chunks before re-running it, because the old labels pointed at chunks that no longer existed.
+- **10/10 recall hides a weakness.** For "What is Bach researching?", every retriever passes only through a one-sentence summary in the profile document; generic Q&A chunks outrank the research document itself.
 - **The paraphrases are easier than real questions** because I wrote them knowing the documents.
 
-When dense retrieval moved from in-memory NumPy to Cosmos DB, I reran the dense benchmark against the cloud index. It returned the same top 3 chunks, in the same order, with the same scores to four decimal places, so the migration changed infrastructure, not behaviour. That only holds because the index is exact; switching to an approximate index would need the check again.
+When dense retrieval moved from in-memory NumPy to Cosmos DB, I reran the benchmark against the cloud index, and I've repeated it since. Both return identical rankings, so the migration changed infrastructure, not behaviour. That same result is why CI can run the benchmark offline, without cloud credentials. It only holds because the index is exact; switching to an approximate index would need the check again.
 
 ## Deployment
 
-- A Docker image built for `linux/amd64`, pushed to **Azure Container Registry** with versioned tags.
+- A Docker image built for `linux/amd64`, pushed to **Azure Container Registry** with versioned tags. Installing the CPU-only build of PyTorch and baking the embedding model into the image shrank it from 3.26 GB to about 0.6 GB and cut the cold start (the first question after the app has scaled to zero) from **32 s to 10.6 s**.
 - **Azure Container Apps** serves it over HTTPS with environment variables, Container Apps secrets, and CORS restricted to this site.
 - The same backend has a small content API. `/content/experience` serves public experience records from Cosmos DB, which this site uses to refresh its experience list in the browser; the static page stays the source of truth (see the [experience page](/experience/)).
 
@@ -84,8 +87,8 @@ When dense retrieval moved from in-memory NumPy to Cosmos DB, I reran the dense 
 
 - **Groundedness is not measured.** A valid citation does not mean every sentence is supported. In testing, the model combined two true facts from one chunk into a claim the chunk never made.
 - **Small evaluation set.** 10 retrieval queries is enough to catch regressions, not to compare methods with confidence.
-- **No rate limiting or authentication**, and upstream LLM failures surface as HTTP 500s. The chat widget on this site handles that with a timeout and a contact fallback.
-- **Cold starts.** The embedding model loads when a container starts, so the first request after a scale-up is slow.
+- **Simple rate limiting.** The limit is per visitor and kept in memory, which suits one small container but wouldn't stop a distributed attack. There is no authentication; the API only serves public information.
+- **Cold starts.** The app scales to zero when idle to stay free, so the first question after a quiet period takes about 10 seconds. The chat widget says so while it waits.
 
 ## What I learned
 
@@ -93,4 +96,4 @@ When dense retrieval moved from in-memory NumPy to Cosmos DB, I reran the dense 
 - Give each chunk a stable identity (`document`, `chunk_id`) and keep it from chunking through to the API response, or evaluation labels quietly drift.
 - Structured output checks shape, not truth. `{"answer": "Bach worked at Google.", "used_context": [999]}` is schema-valid, which is why source resolution exists.
 
-**Next:** a 50 to 100 question evaluation set with independently written paraphrases and unanswerable questions, groundedness metrics, and incremental re-indexing from the Cosmos DB change feed.
+**Next:** a larger evaluation set with questions written by other people, plus unanswerable and prompt-injection cases; an answer-level faithfulness score; and a baseline that skips retrieval and gives the model the whole knowledge base, to test whether RAG is earning its complexity here.
