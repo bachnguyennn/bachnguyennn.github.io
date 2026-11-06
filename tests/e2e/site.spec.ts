@@ -16,8 +16,8 @@ test('homepage shows identity, featured projects and contact', async ({ page }) 
   await expect(page).toHaveTitle('Bach Nguyen · Machine Learning & Data Engineering');
   await expect(page.getByRole('heading', { level: 1, name: 'Bach Nguyen' })).toBeVisible();
   const selected = page.locator('main section').filter({ has: page.getByRole('heading', { name: 'Selected projects', exact: true }) });
-  await expect(selected.locator('.entries > .entry')).toHaveCount(3);
-  await expect(selected.getByRole('heading', { level: 3 })).toHaveText(['Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning']);
+  await expect(selected.locator('.entries > .entry')).toHaveCount(4);
+  await expect(selected.getByRole('heading', { level: 3 })).toHaveText(['Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning', 'GrammarMe']);
   await expect(selected.getByRole('link', { name: 'All projects →', exact: true })).toHaveAttribute('href', '/projects/');
   await expect(page.getByText('Open to new-graduate machine learning engineering and data engineering roles starting after April 2027.', { exact: true })).toBeVisible();
   await expect(page.locator('#contact a[href="mailto:vubach.nguyen@ontariotechu.net"]')).toBeVisible();
@@ -43,10 +43,10 @@ test('projects page lists every project and opens write-ups at their original UR
   await page.goto('/');
   await page.getByRole('link', { name: 'All projects →', exact: true }).click();
   await expect(page).toHaveURL(/\/projects\/?$/);
-  await expect(page.locator('main .entries > .entry')).toHaveCount(12);
+  await expect(page.locator('main .entries > .entry')).toHaveCount(13);
   await expect(page.locator('main .entries > .entry h3')).toHaveText([
     'Ask Bach', 'MarketGuard', 'CascadedViT Continual Learning',
-    'Hospital Readmission Risk Model', 'Electricity Load Forecasting', 'Chest X-Ray Pneumonia Detection',
+    'GrammarMe', 'Hospital Readmission Risk Model', 'Electricity Load Forecasting', 'Chest X-Ray Pneumonia Detection',
     'Soccer xG / Value-Betting Engine', 'Nested Learning Architecture', 'FastText Subword Embeddings',
     'AstroLoc-ML', 'Global GDP ETL Pipeline', 'Ontario Infrastructure Analysis',
   ]);
@@ -54,7 +54,7 @@ test('projects page lists every project and opens write-ups at their original UR
   await expect(page).toHaveURL(/\/projects\/ask-bach\/?$/);
   await expect(page.getByRole('heading', { name: 'Evaluation' })).toBeVisible();
 
-  for (const slug of ['market-guard', 'hospital-readmission', 'chest-xray-pneumonia', 'energy-demand-forecasting', 'expected-goals', 'astrolok', 'fasttext-embeddings', 'nested-learning']) {
+  for (const slug of ['market-guard', 'grammarme', 'hospital-readmission', 'chest-xray-pneumonia', 'energy-demand-forecasting', 'expected-goals', 'astrolok', 'fasttext-embeddings', 'nested-learning']) {
     const res = await page.goto(`/projects/${slug}/`);
     expect(res?.status(), slug).toBe(200);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
