@@ -11,7 +11,7 @@ period: "2026"
 year: 2026
 order: 4
 featured: true
-stack: ["TypeScript", "React", "Vite", "Harper", "WebAssembly", "Chrome Extension (MV3)", "Cloudflare Workers", "Vitest"]
+stack: ["TypeScript", "React", "Vite", "Harper", "WebAssembly", "Chrome Extension (MV3)", "Vitest"]
 result:
   value: "84.0% / 69.5%"
   label: "precision / recall of the on-device checker"
@@ -24,7 +24,7 @@ demo:
 
 ## Overview
 
-GrammarMe underlines spelling, grammar and punctuation mistakes as you type, explains each one, and fixes it in one click. There are two ways to use it: a web editor and a Chrome extension for text boxes on websites, including rich-text editors such as Gmail. The grammar engine is [Harper](https://writewithharper.com), an open-source checker compiled to WebAssembly, so your text is checked inside your browser. I built everything around it: the editor, the extension, the suggestion logic, the evaluation, and two optional AI routes.
+GrammarMe underlines spelling, grammar and punctuation mistakes as you type, explains each one, and fixes it in one click. There are two ways to use it: a web editor and a Chrome extension for text boxes on websites, including rich-text editors such as Gmail. The grammar engine is [Harper](https://writewithharper.com), an open-source checker compiled to WebAssembly, so your text is checked inside your browser. I built everything around it: the editor, the extension, the suggestion logic, the evaluation, and an optional ChatGPT check.
 
 ## The problem
 
@@ -39,15 +39,14 @@ you type in a <textarea>
   → suggestions for document version N, rebased onto the current text
   → underlines, card and sidebar → accept as a normal undoable edit
 
-only when you press the AI button:
-  web editor → your own Cloudflare Worker → LLM provider
-  extension  → local companion program → your ChatGPT plan
+only when you press the AI button in the extension:
+  extension → local companion program → your ChatGPT plan
 ```
 
 1. **Shared core.** One TypeScript package holds the suggestion contract, the edit helpers, the Harper adapter, and the AI prompts and guards. The editor and the extension both build on it.
 2. **Web editor.** React and Vite, with Harper in a Web Worker so loading the 20 MB WASM file never stalls typing.
 3. **Chrome extension.** One Harper instance runs in an offscreen document and all tabs share it, instead of loading a copy per tab.
-4. **Optional AI.** Off by default and sent only on request. The web editor calls a Cloudflare Worker that you deploy on your own free account. The extension can use your own ChatGPT Plus or Pro plan through a small local companion, with no API key.
+4. **Optional AI.** Off by default and sent only on request. The extension can use your own ChatGPT Plus or Pro plan through a small local companion, with no API key.
 
 ## Implementation decisions
 
@@ -92,7 +91,7 @@ What I take from this:
 - **Lower recall than a commercial tool.** Without AI, about 3 in 10 errors in the dataset go unflagged. I have not run a side-by-side comparison with Grammarly, and AI suggestion quality is not measured yet.
 - **The extension is a prototype.** It installs by hand in Developer mode, updates by hand, works on desktop only, and doesn't support Google Docs.
 - **The ChatGPT route has narrow eligibility.** It needs the companion on macOS or Linux and a Plus or Pro plan. OpenAI allows plan usage for local open-source tools, but its pages don't mention browser extensions, so this route could change.
-- **Optional AI leaves your device.** When you use it, text goes to your own Worker and the model provider you chose, or to OpenAI with your ChatGPT plan. It is off by default, and in the extension you preview the text before it is sent.
+- **Optional AI leaves your device.** When you use it, text goes to OpenAI with your ChatGPT plan. It is off by default, and you preview the text before it is sent.
 
 ## What I learned
 
@@ -100,4 +99,4 @@ What I take from this:
 - Decide where each kind of check should run. Fast rules suit the device and harder rewrites suit an LLM, but only with the privacy trade-off made explicit.
 - Treat user text as the thing that must never break. Most of the engineering in the editor goes into making sure a suggestion can't land in the wrong place while someone is typing.
 
-**Next:** a side-by-side comparison of AI providers on this same dataset, a larger set of real writing that I didn't write myself, and a Chrome Web Store release so the extension no longer needs Developer mode.
+**Next:** measuring the ChatGPT check on this same dataset, a larger set of real writing that I didn't write myself, and a Chrome Web Store release so the extension no longer needs Developer mode.
