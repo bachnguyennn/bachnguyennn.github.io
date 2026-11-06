@@ -60,17 +60,18 @@ question
 
 ## Evaluation
 
-The benchmark is deliberately small: **10 queries**, made of 5 original questions and 5 paraphrases that share their relevance labels. The relevance rule was fixed before any results were seen. Results on the current knowledge base (21 documents, 115 chunks):
+The benchmark is deliberately small: **10 queries**, made of 5 original questions and 5 paraphrases that share their relevance labels. The relevance rule was fixed before any results were seen. Results on the current knowledge base (22 documents, 122 chunks):
 
 | Metric | Dense | BM25 | Hybrid |
 |---|---:|---:|---:|
-| Recall@3 | 8/10 | 9/10 | **10/10** |
-| Precision@3 | 47% | **63%** | 60% |
-| MRR@3 | 0.75 | 0.80 | **0.88** |
+| Recall@3 | **10/10** | **10/10** | **10/10** |
+| Precision@3 | 53% | **67%** | 60% |
+| MRR@3 | 0.88 | 0.83 | **0.93** |
 
 What I take from this:
 
-- **Hybrid is the only retriever that finds evidence for every question**, and it ranks it highest. BM25 is still slightly ahead on precision, so hybrid against BM25 is close.
+- **Hybrid ranks evidence highest**, and all three retrievers now find evidence for every question. BM25 is still ahead on precision, so hybrid against BM25 is close.
+- **A new document can break an unrelated answer.** Adding GrammarMe dropped hybrid recall to 9/10, because its chunks pushed the skills chunk out of the dense top 10 for "Which coding languages can Bach use?". CI caught it, and rewording one line of that chunk fixed it. These scores were measured after that fix, so the rise in MRR from 0.88 to 0.93 isn't a clean gain.
 - **A bigger knowledge base is a harder haystack.** When the corpus grew from 33 to 115 chunks, hybrid precision fell from 70% to 60% and MRR from 0.95 to 0.88. I re-labelled the benchmark for the new chunks before re-running it, because the old labels pointed at chunks that no longer existed.
 - **10/10 recall hides a weakness.** For "What is Bach researching?", every retriever passes only through a one-sentence summary in the profile document; generic Q&A chunks outrank the research document itself.
 - **The paraphrases are easier than real questions** because I wrote them knowing the documents.
